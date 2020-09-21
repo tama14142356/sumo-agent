@@ -1,0 +1,3 @@
+[submodule "gym-sumo"]
+	path = gym-sumo
+	url = git@git.esslab.jp:tomo/gym-sumo.git
