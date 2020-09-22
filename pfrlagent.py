@@ -54,9 +54,9 @@ class Net(nn.Module):
         self.gaus = GaussianHeadWithFixedCovariance(0.3)
 
     def forward(self, data):
-        # device = 'cpu' if gpudefault < 0 else 'cuda'
-        # graph = self.env.unwrapped.getData(data).to(device)
-        graph = data
+        device = 'cpu' if gpudefault < 0 else 'cuda'
+        graph = self.env.unwrapped.getData(data).to(device)
+        # graph = data
         x, edge_index = graph.x, graph.edge_index
 
         x = self.conv1(x, edge_index)
