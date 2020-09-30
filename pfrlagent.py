@@ -44,7 +44,7 @@ class Net(nn.Module):
     def __init__(self, env):
         super(Net, self).__init__()
         self.env = env
-        dataset = env.unwrapped.data
+        dataset = env.data
         num_action = env.action_space[0][0].n + env.action_space[0][1].low.size
         hidden_size = 200
         self.conv1 = GCNConv(dataset.num_node_features, hidden_size)
@@ -55,7 +55,7 @@ class Net(nn.Module):
 
     def forward(self, data):
         device = 'cpu' if gpudefault < 0 else 'cuda'
-        graph = self.env.unwrapped.getData(data).to(device)
+        graph = self.env.getData(data).to(device)
         # graph = data
         x, edge_index = graph.x, graph.edge_index
 
@@ -68,7 +68,9 @@ class Net(nn.Module):
         x2 = x[length - 2: length - 1]
         f1 = self.soft(x1)
         f2 = self.gaus(x2)
-        f = torch.cat((f1, f2), 0)
+        f3 = torch.cat([f2.mean, f2.variance], dim=0)
+        f4 = torch.reshape(f1.probs, (1, 8))
+        f = torch.cat([f4, f3], dim=0)
         return f
 
 
@@ -185,7 +187,7 @@ def main():
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
-        env = pfrl.wrappers.CastObservationToFloat32(env)
+        # env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
             env = pfrl.wrappers.Monitor(env, args.outdir)
         if not test:
