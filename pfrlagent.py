@@ -63,14 +63,15 @@ class Net(nn.Module):
         x = self.relu(x)
         # x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
-        length = len(x)
-        x1 = x[length - 1]
-        x2 = x[length - 2: length - 1]
-        f1 = self.soft(x1)
-        f2 = self.gaus(x2)
-        f3 = torch.cat([f2.mean, f2.variance], dim=0)
-        f4 = torch.reshape(f1.probs, (1, 8))
-        f = torch.cat([f4, f3], dim=0)
+        # length = len(x)
+        # x1 = x[length - 1]
+        # x2 = x[length - 2: length - 1]
+        # f1 = self.soft(x1)
+        # f2 = self.gaus(x2)
+        # f3 = torch.cat([f2.mean, f2.variance], dim=0)
+        # f4 = torch.reshape(f1.probs, (1, 8))
+        # f = torch.cat([f4, f3], dim=0)
+        f = self.soft(x)
         return f
 
 
@@ -187,7 +188,7 @@ def main():
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
-        # env = pfrl.wrappers.CastObservationToFloat32(env)
+        env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
             env = pfrl.wrappers.Monitor(env, args.outdir)
         if not test:

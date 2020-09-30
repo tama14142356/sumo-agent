@@ -10,3 +10,7 @@
 
 # result dir
 /results
+
+# log
+*.log
+error*
