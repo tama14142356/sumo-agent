@@ -23,14 +23,31 @@ from pfrl import utils
 from pfrl.policies import SoftmaxCategoricalHead
 from pfrl.policies import GaussianHeadWithFixedCovariance
 
+# default
+# args_ini = {
+#     'step_length': 0.01,
+#     'isgraph': True,
+#     'area': 'nishiwaseda',
+#     'carnum': 100,
+#     'mode': 'gui' (or 'cui'),
+#     'simlation_step': 100
+#     'seed': None
+# }
+args_ini = {
+    'mode': 'cui',
+    'carnum': 10
+}
+gpudefault = 0 if torch.cuda.is_available() else -1
+
 
 def main():
     import logging
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="Sumo-v0")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
-    parser.add_argument("--gpu", type=int, default=0)
+    parser.add_argument("--env", type=str, default="sumo-light-v0")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="Random seed [0, 2 ** 32)")
+    parser.add_argument("--gpu", type=int, default=gpudefault)
     parser.add_argument(
         "--outdir",
         type=str,
@@ -62,7 +79,7 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
     def make_env(test):
-        env = gym.make(args.env)
+        env = gym.make(args.env, **args_ini)
         # Use different random seeds for train and test envs
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
@@ -85,6 +102,7 @@ def main():
 
     obs_size = obs_space.low.size
     hidden_size = 200
+    act_size = (action_space[0][0].n + action_space[0][1].shape[0]) * len(action_space)
     # Switch policy types accordingly to action space types
     if isinstance(action_space, gym.spaces.Box):
         model = nn.Sequential(
@@ -92,7 +110,7 @@ def main():
             nn.LeakyReLU(0.2),
             nn.Linear(hidden_size, hidden_size),
             nn.LeakyReLU(0.2),
-            nn.Linear(hidden_size, action_space.low.size),
+            nn.Linear(hidden_size, act_size),
             GaussianHeadWithFixedCovariance(0.3),
         )
     else:
@@ -101,7 +119,7 @@ def main():
             nn.LeakyReLU(0.2),
             nn.Linear(hidden_size, hidden_size),
             nn.LeakyReLU(0.2),
-            nn.Linear(hidden_size, action_space.n),
+            nn.Linear(hidden_size, act_size),
             SoftmaxCategoricalHead(),
         )
 

@@ -72,6 +72,8 @@ class Net(nn.Module):
         # f4 = torch.reshape(f1.probs, (1, 8))
         # f = torch.cat([f4, f3], dim=0)
         f = self.soft(x)
+        test = f.entropy()
+        print(test)
         return f
 
 
