@@ -35,7 +35,7 @@ from pfrl.policies import GaussianHeadWithFixedCovariance
 # }
 args_ini = {
     'mode': 'cui',
-    'carnum': 10
+    # 'carnum': 10
 }
 gpudefault = 0 if torch.cuda.is_available() else -1
 
@@ -102,7 +102,6 @@ def main():
 
     obs_size = obs_space.low.size
     hidden_size = 200
-    act_size = (action_space[0][0].n + action_space[0][1].shape[0]) * len(action_space)
     # Switch policy types accordingly to action space types
     if isinstance(action_space, gym.spaces.Box):
         model = nn.Sequential(
@@ -110,8 +109,17 @@ def main():
             nn.LeakyReLU(0.2),
             nn.Linear(hidden_size, hidden_size),
             nn.LeakyReLU(0.2),
-            nn.Linear(hidden_size, act_size),
+            nn.Linear(hidden_size, action_space.low.size),
             GaussianHeadWithFixedCovariance(0.3),
+        )
+    elif isinstance(action_space, gym.spaces.Discrete):
+        model = nn.Sequential(
+            nn.Linear(obs_size, hidden_size),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_size, hidden_size),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_size, action_space.n),
+            SoftmaxCategoricalHead(),
         )
     else:
         model = nn.Sequential(
@@ -119,7 +127,7 @@ def main():
             nn.LeakyReLU(0.2),
             nn.Linear(hidden_size, hidden_size),
             nn.LeakyReLU(0.2),
-            nn.Linear(hidden_size, act_size),
+            nn.Linear(hidden_size, action_space[0].n + action_space[1].low.size),
             SoftmaxCategoricalHead(),
         )
 
@@ -165,7 +173,6 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             train_max_episode_len=timestep_limit,
-            use_tensorboard=True,
         )
 
 
