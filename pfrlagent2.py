@@ -44,7 +44,7 @@ def main():
     import logging
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="sumo-light-v0")
+    parser.add_argument("--env", type=str, default="sumo-simple-v0")
     parser.add_argument("--seed", type=int, default=0,
                         help="Random seed [0, 2 ** 32)")
     parser.add_argument("--gpu", type=int, default=gpudefault)
@@ -60,7 +60,7 @@ def main():
     parser.add_argument("--beta", type=float, default=1e-4)
     parser.add_argument("--batchsize", type=int, default=10)
     parser.add_argument("--steps", type=int, default=10 ** 5)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
+    parser.add_argument("--eval-interval", type=int, default=100)
     parser.add_argument("--eval-n-runs", type=int, default=100)
     parser.add_argument("--reward-scale-factor", type=float, default=1e-2)
     parser.add_argument("--render", action="store_true", default=False)
@@ -173,6 +173,7 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True
         )
 
 
