@@ -31,11 +31,17 @@ from pfrl.policies import GaussianHeadWithFixedCovariance
 #     'carnum': 100,
 #     'mode': 'gui' (or 'cui'),
 #     'simlation_step': 100
-#     'seed': None
+#     'seed': None,
+#     'label': 'default'
 # }
-kwargs = {
-    # 'mode': 'cui',
-    # 'carnum': 10
+kwargs1 = {
+    'mode': 'cui',
+    'carnum': 1
+}
+kwargs2 = {
+    'mode': 'cui',
+    'carnum': 1,
+    'label': 'default2'
 }
 gpudefault = 0 if torch.cuda.is_available() else -1
 
@@ -78,7 +84,7 @@ def main():
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
-    def make_env(test):
+    def make_env(test, kwargs):
         env = gym.make(args.env, **kwargs)
         # Use different random seeds for train and test envs
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
@@ -95,7 +101,7 @@ def main():
             env = pfrl.wrappers.Render(env)
         return env
 
-    train_env = make_env(test=False)
+    train_env = make_env(test=False, kwargs=kwargs1)
     timestep_limit = train_env.spec.max_episode_steps
     obs_space = train_env.observation_space
     action_space = train_env.action_space
@@ -135,7 +141,7 @@ def main():
     if args.load:
         agent.load(args.load)
 
-    eval_env = make_env(test=True)
+    eval_env = make_env(test=True, kwargs=kwargs2)
 
     if args.demo:
         eval_stats = experiments.eval_performance(
