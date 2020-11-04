@@ -74,8 +74,8 @@ class DQNAgent:
         self.step += 1
         return action
 
-    def remember(self, state, action, reward, new_state, done):
-        self.memory.append([state, action, reward, new_state, done])
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append([state, action, reward, next_state, done])
         if len(self.memory) > self.memory_size:
             self.memory.pop(0)
 
@@ -160,6 +160,7 @@ if __name__ == "__main__":
         action = dqn_agent.act(cur_state)
         next_state, reward, done, info = env.step(action)
         dqn_agent.remember(cur_state, action, reward, next_state, done)
+        cur_state = next_state if not done else env.reset()
 
     start = time.time()
 
@@ -170,8 +171,8 @@ if __name__ == "__main__":
         total_reward = 0.0
         for step in range(trial_len):
             action = dqn_agent.act(cur_state)
-            new_state, reward, done, info = env.step(action)
-            dqn_agent.remember(cur_state, action, reward, new_state, done)
+            next_state, reward, done, info = env.step(action)
+            dqn_agent.remember(cur_state, action, reward, next_state, done)
             loss = dqn_agent.replay()
             if loss > 0:
                 total_loss += loss
@@ -179,7 +180,7 @@ if __name__ == "__main__":
             total_step += 1
             total_reward += reward
 
-            cur_state = new_state
+            cur_state = next_state
 
             if done:
                 break
