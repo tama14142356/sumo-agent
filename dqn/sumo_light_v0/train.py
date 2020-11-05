@@ -17,9 +17,9 @@ def act_random(step):
     return random.random() < eps
 
 
-def main():
+def main(kwargs):
     # env spaces
-    env = gym.make('sumo-light-v0')
+    env = gym.make('sumo-light-v0', **kwargs)
     obs_space = env.observation_space
     act_space = env.action_space
 
@@ -126,5 +126,10 @@ if __name__ == '__main__':
     EPISODE = 50
     writing_scalar = WritingScalar()
 
-    main()
+    kwargs = {
+        "mode": "cui",
+        "carnum": 1
+    }
+
+    main(kwargs)
     writing_scalar.close()
