@@ -111,6 +111,8 @@ def main(kwargs):
         writing_scalar.writing_list(
             tag="reward", target_list=reward_list, end_step=step)
 
+    env.close()
+
 
 if __name__ == '__main__':
     # hyperparameter
