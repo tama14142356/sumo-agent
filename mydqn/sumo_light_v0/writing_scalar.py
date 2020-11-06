@@ -1,6 +1,6 @@
 from torch.utils.tensorboard import SummaryWriter
 
-TENSOR_BOARD_LOG_DIR = './results/sumo-light1'
+TENSOR_BOARD_LOG_DIR = './results/sumo-light1/mydqn/episode_1000000'
 
 
 class WritingScalar:

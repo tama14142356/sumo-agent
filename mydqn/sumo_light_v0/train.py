@@ -125,7 +125,7 @@ if __name__ == '__main__':
     HIDDEN = 96
     LR = 1e-4
     CAPACITY = 10000
-    EPISODE = 50
+    EPISODE = 10 ** 6
     writing_scalar = WritingScalar()
 
     kwargs = {
