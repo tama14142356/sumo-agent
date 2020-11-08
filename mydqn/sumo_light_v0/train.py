@@ -9,7 +9,7 @@ import torch.optim as optim
 
 from model import DQN
 from replay_memory import ReplayMemory, Transition
-from writing_scalar import WritingScalar
+from save_write_result import SaveWriteResult
 
 
 def act_random(step):
@@ -104,13 +104,15 @@ def main(kwargs):
             target_net.load_state_dict(policy_net.state_dict())
 
         # writing tensorboard
-        writing_scalar.writing_list(
+        save_write_result.writing_list(
             tag="loss", target_list=loss_list, end_step=step)
-        writing_scalar.writer.add_scalar(
+        save_write_result.writer.add_scalar(
             tag="total_reward", scalar_value=total_reward, global_step=step)
-        writing_scalar.writing_list(
+        save_write_result.writing_list(
             tag="reward", target_list=reward_list, end_step=step)
 
+    save_write_result.save_model(target_net, "target_model.pt")
+    save_write_result.save_model(policy_net, "policy_model.pt")
     env.close()
 
 
@@ -126,7 +128,7 @@ if __name__ == '__main__':
     LR = 1e-4
     CAPACITY = 10000
     EPISODE = 10 ** 6
-    writing_scalar = WritingScalar()
+    save_write_result = SaveWriteResult()
 
     kwargs = {
         "mode": "cui",
@@ -134,4 +136,4 @@ if __name__ == '__main__':
     }
 
     main(kwargs)
-    writing_scalar.close()
+    save_write_result.close()
