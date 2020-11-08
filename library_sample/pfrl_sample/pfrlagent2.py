@@ -57,16 +57,16 @@ def main():
     parser.add_argument(
         "--outdir",
         type=str,
-        default="results/sumo-light1",
+        default="results/sumo-light/batch_128_eval_interval_10000",
         help=(
             "Directory path to save output files."
             " If it does not exist, it will be created."
         ),
     )
     parser.add_argument("--beta", type=float, default=1e-4)
-    parser.add_argument("--batchsize", type=int, default=10)
+    parser.add_argument("--batchsize", type=int, default=128)
     parser.add_argument("--steps", type=int, default=10 ** 5)
-    parser.add_argument("--eval-interval", type=int, default=100)
+    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
     parser.add_argument("--eval-n-runs", type=int, default=100)
     parser.add_argument("--reward-scale-factor", type=float, default=1e-2)
     parser.add_argument("--render", action="store_true", default=False)
