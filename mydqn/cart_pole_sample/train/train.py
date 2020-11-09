@@ -17,11 +17,11 @@ def act_random(step):
 
 def main():
     # env spaces
-    env = gym.make('CartPole-v0')
+    env = gym.make("CartPole-v0")
     obs_space = env.observation_space
     act_space = env.action_space
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # models
     policy_net = DQN(obs_space.shape[0], HIDDEN, act_space.n).to(device)
@@ -38,7 +38,7 @@ def main():
 
     # learn
     for episode in range(EPISODE):
-        print(f'Episode {episode}')
+        print(f"Episode {episode}")
 
         # prepare
         obs = torch.as_tensor(env.reset(), dtype=torch.float)
@@ -79,8 +79,9 @@ def main():
             # calc loss
             Q = policy_net(obs_batch).gather(1, action_batch)
             with torch.no_grad():
-                target_Q = target_net(next_obs_batch).max(
-                    1, keepdim=True)[0] * ~done_batch
+                target_Q = (
+                    target_net(next_obs_batch).max(1, keepdim=True)[0] * ~done_batch
+                )
             loss = F.smooth_l1_loss(Q, reward_batch + GAMMA * target_Q)
 
             # update model
@@ -93,7 +94,7 @@ def main():
             target_net.load_state_dict(policy_net.state_dict())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # hyperparameter
     BATCH_SIZE = 128
     GAMMA = 0.999

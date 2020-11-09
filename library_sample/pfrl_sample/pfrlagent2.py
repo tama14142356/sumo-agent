@@ -25,24 +25,18 @@ from pfrl.policies import GaussianHeadWithFixedCovariance
 
 # default
 # kwargs = {
-#     'step_length': 0.01,
-#     'isgraph': True,
-#     'area': 0, (0: nishiwaseda)
-#     'carnum': 100,
-#     'mode': 'gui' (or 'cui'),
-#     'simlation_step': 100
-#     'seed': None,
-#     'label': 'default'
+#     "step_length": 0.01,
+#     "isgraph": True,
+#     "area": 0,(0: nishiwaseda)
+#     "carnum": 100,
+#     "mode": "gui" (or "cui"),
+#     "simlation_step": 100,
+#     "seed": None,
+#     "label": "default",
 # }
-kwargs1 = {
-    'mode': 'cui',
-    'carnum': 1
-}
-kwargs2 = {
-    'mode': 'cui',
-    'carnum': 1,
-    'label': 'default2'
-}
+
+kwargs1 = {"mode": "cui", "carnum": 1}
+kwargs2 = {"mode": "cui", "carnum": 1, "label": "default2"}
 gpudefault = 0 if torch.cuda.is_available() else -1
 
 
@@ -51,8 +45,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="sumo-light-v0")
-    parser.add_argument("--seed", type=int, default=0,
-                        help="Random seed [0, 2 ** 32)")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument("--gpu", type=int, default=gpudefault)
     parser.add_argument(
         "--outdir",
@@ -170,7 +163,7 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             train_max_episode_len=timestep_limit,
-            use_tensorboard=True
+            use_tensorboard=True,
         )
 
 

@@ -19,9 +19,9 @@ def digitize_state(observation):
         np.digitize(cart_pos, bins=bins(-2.4, 2.4, num_dizitized)),
         np.digitize(cart_v, bins=bins(-3.0, 3.0, num_dizitized)),
         np.digitize(pole_angle, bins=bins(-0.5, 0.5, num_dizitized)),
-        np.digitize(pole_v, bins=bins(-2.0, 2.0, num_dizitized))
+        np.digitize(pole_v, bins=bins(-2.0, 2.0, num_dizitized)),
     ]
-    return sum([x * (num_dizitized**i) for i, x in enumerate(digitized)])
+    return sum([x * (num_dizitized ** i) for i, x in enumerate(digitized)])
 
 
 # [2]行動a(t)を求める関数 -------------------------------------
@@ -40,14 +40,15 @@ def update_Qtable(q_table, state, action, reward, next_state):
     gamma = 0.99
     alpha = 0.5
     next_Max_Q = max(q_table[next_state][0], q_table[next_state][1])
-    q_table[state, action] = (1 - alpha) * q_table[state, action] +\
-        alpha * (reward + gamma * next_Max_Q)
+    q_table[state, action] = (1 - alpha) * q_table[state, action] + alpha * (
+        reward + gamma * next_Max_Q
+    )
 
     return q_table
 
 
 # [4]. メイン関数開始 パラメータ設定--------------------------------------------------------
-env = gym.make('CartPole-v0')
+env = gym.make("CartPole-v0")
 max_number_of_steps = 200  # 1試行のstep数
 num_consecutive_iterations = 100  # 学習完了評価に使用する平均試行回数
 num_episodes = 2000  # 総試行回数
@@ -55,7 +56,8 @@ goal_average_reward = 195  # この報酬を超えると学習終了（中心へ
 # 状態を6分割^（4変数）にデジタル変換してQ関数（表）を作成
 num_dizitized = 6  # 分割数
 q_table = np.random.uniform(
-    low=-1, high=1, size=(num_dizitized**4, env.action_space.n))
+    low=-1, high=1, size=(num_dizitized ** 4, env.action_space.n)
+)
 
 total_reward_vec = np.zeros(num_consecutive_iterations)  # 各試行の報酬を格納
 final_x = np.zeros((num_episodes, 1))  # 学習後、各試行のt=200でのｘの位置を格納
@@ -96,37 +98,37 @@ for episode in range(num_episodes):  # 試行数分繰り返す
         q_table = update_Qtable(q_table, state, action, reward, next_state)
 
         #  次の行動a_{t+1}を求める
-        action = get_action(next_state, episode)    # a_{t+1}
+        action = get_action(next_state, episode)  # a_{t+1}
 
         state = next_state
 
         # 終了時の処理
         if done:
-            print('%d Episode finished after %f time steps / mean %f' %
-                  (episode, t + 1, total_reward_vec.mean()))
-            total_reward_vec = np.hstack((total_reward_vec[1:],
-                                          episode_reward))  # 報酬を記録
+            print(
+                "%d Episode finished after %f time steps / mean %f"
+                % (episode, t + 1, total_reward_vec.mean())
+            )
+            total_reward_vec = np.hstack(
+                (total_reward_vec[1:], episode_reward)
+            )  # 報酬を記録
             if islearned == 1:  # 学習終わってたら最終のx座標を格納
                 final_x[episode, 0] = observation[0]
             break
 
-    if (total_reward_vec.mean() >= goal_average_reward):
+    if total_reward_vec.mean() >= goal_average_reward:
         # 直近の100エピソードが規定報酬以上であれば成功
-        print('Episode %d train agent successfuly!' % episode)
+        print("Episode %d train agent successfuly!" % episode)
         islearned = 1
-        np.savetxt('learned_Q_table.csv', q_table,
-                   delimiter=",")  # Qtableの保存する場合
+        np.savetxt("learned_Q_table.csv", q_table, delimiter=",")  # Qtableの保存する場合
         if isrender == 0:
-            env = wrappers.Monitor(
-                env, './movie/cartpole-experiment-1')  # 動画保存する場合
+            env = wrappers.Monitor(env, "./movie/cartpole-experiment-1")  # 動画保存する場合
             isrender = 1
     # 10エピソードだけでどんな挙動になるのか見たかったら、以下のコメントを外す
     if episode > 10:
         if isrender == 0:
-            env = wrappers.Monitor(
-                env, './movie/cartpole-experiment-1')  # 動画保存する場合
+            env = wrappers.Monitor(env, "./movie/cartpole-experiment-1")  # 動画保存する場合
             isrender = 1
         islearned = 1
 
 if islearned:
-    np.savetxt('final_x.csv', final_x, delimiter=",")
+    np.savetxt("final_x.csv", final_x, delimiter=",")

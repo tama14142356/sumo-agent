@@ -24,18 +24,17 @@ from pfrl.policies import SoftmaxCategoricalHead
 from pfrl.policies import GaussianHeadWithFixedCovariance
 
 # default
-# args_ini = {
-#     'step_length': 0.01,
-#     'isgraph': True,
-#     'area': 'nishiwaseda',
-#     'carnum': 100,
-#     'mode': 'gui' (or 'cui'),
-#     'simlation_step': 100
+# kwargs = {
+#     "step_length": 0.01,
+#     "isgraph": True,
+#     "area": 0,(0: nishiwaseda)
+#     "carnum": 100,
+#     "mode": "gui" (or "cui"),
+#     "simlation_step": 100,
+#     "seed": None,
+#     "label": "default",
 # }
-args_ini = {
-    'mode': 'cui',
-    'carnum': 10
-}
+kwargs = {"mode": "cui", "carnum": 10}
 
 gpudefault = 0 if torch.cuda.is_available() else -1
 
@@ -54,7 +53,7 @@ class Net(nn.Module):
         self.gaus = GaussianHeadWithFixedCovariance(0.3)
 
     def forward(self, data):
-        device = 'cpu' if gpudefault < 0 else 'cuda'
+        device = "cpu" if gpudefault < 0 else "cuda"
         graph = self.env.getData(data).to(device)
         # graph = data
         x, edge_index = graph.x, graph.edge_index
@@ -82,22 +81,14 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--env",
-        type=str,
-        default="gym_sumo:sumo-v0",
-        help="Gym Env ID."
+        "--env", type=str, default="gym_sumo:sumo-v0", help="Gym Env ID."
     )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=0,
-        help="Random seed [0, 2 ** 32)"
-    )
+    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument(
         "--gpu",
         type=int,
         default=gpudefault,
-        help="GPU device ID. Set to -1 to use CPUs only."
+        help="GPU device ID. Set to -1 to use CPUs only.",
     )
     parser.add_argument(
         "--outdir",
@@ -116,10 +107,7 @@ def main():
         help="Size of minibatch (in timesteps).",
     )
     parser.add_argument(
-        "--steps",
-        type=int,
-        default=10 ** 5,
-        help="Total time steps for training."
+        "--steps", type=int, default=10 ** 5, help="Total time steps for training."
     )
     parser.add_argument(
         "--eval-interval",
@@ -140,12 +128,7 @@ def main():
         default=False,
         help="Render env states in a GUI window.",
     )
-    parser.add_argument(
-        "--lr",
-        type=float,
-        default=1e-3,
-        help="Learning rate."
-    )
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
     parser.add_argument(
         "--demo",
         action="store_true",
@@ -185,7 +168,7 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
     def make_env(test):
-        env = gym.make(args.env, **args_ini)
+        env = gym.make(args.env, **kwargs)
         # Use different random seeds for train and test envs
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)

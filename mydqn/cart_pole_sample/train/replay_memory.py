@@ -1,8 +1,7 @@
 import random
 from collections import namedtuple
 
-Transition = namedtuple('Transition',
-                        ('obs', 'action', 'next_obs', 'reward', 'done'))
+Transition = namedtuple("Transition", ("obs", "action", "next_obs", "reward", "done"))
 
 
 class ReplayMemory:

@@ -9,7 +9,7 @@ HIDDEN_SIZE = 128
 BATCH_SIZE = 16
 PERCENTILE = 70
 
-env = gym.make('CartPole-v0')
+env = gym.make("CartPole-v0")
 env.observation_space.shape
 
 OBSERVATION_SIZE = env.observation_space.shape[0]
@@ -22,7 +22,7 @@ network = nn.Sequential(
 )
 
 
-class Episode():
+class Episode:
     """
     Episodeの情報を保持するためのクラス。
 
@@ -47,7 +47,7 @@ class Episode():
         self.episode_step_list = episode_step_list
 
 
-class EpisodeStep():
+class EpisodeStep:
     """
     Episode中のAction単体分の情報の保持するためのクラス。
 
@@ -94,7 +94,6 @@ def iter_batch():
     while True:
         obs_v = torch.FloatTensor([obs])
         act_probabilities_v = sm(network(input=obs_v))
-        tmp = act_probabilities_v.data.numpy()
         act_probabilities = act_probabilities_v.data.numpy()[0]
         action = np.random.choice(a=len(act_probabilities), p=act_probabilities)
 
@@ -109,7 +108,8 @@ def iter_batch():
         # is_doneがTrueになった、ということはEpisode単体の終了を意味します。
         if is_done:
             episode = Episode(
-                reward=episode_reward, episode_step_list=episode_step_list)
+                reward=episode_reward, episode_step_list=episode_step_list
+            )
             episode_list.append(episode)
 
             # 次のEpisodeのために、各値をリセットします。
@@ -178,7 +178,7 @@ def get_episode_filtered_results(episode_list):
 
 loss_func = nn.CrossEntropyLoss()
 optimizer = Adam(params=network.parameters(), lr=0.01)
-TENSOR_BOARD_LOG_DIR = './tensorboard_log'
+TENSOR_BOARD_LOG_DIR = "./tensorboard_log"
 writer = SummaryWriter(log_dir=TENSOR_BOARD_LOG_DIR)
 
 
@@ -186,8 +186,9 @@ iter_no = 0
 while True:
 
     episode_list = iter_batch()
-    train_obs_v, train_act_v, reward_bound, reward_mean = \
-        get_episode_filtered_results(episode_list=episode_list)
+    train_obs_v, train_act_v, reward_bound, reward_mean = get_episode_filtered_results(
+        episode_list=episode_list
+    )
     optimizer.zero_grad()
     network_output_tensor = network(train_obs_v)
     loss_v = loss_func(network_output_tensor, train_act_v)
@@ -195,23 +196,20 @@ while True:
     optimizer.step()
 
     loss = loss_v.item()
-    log_str = 'iter_no : %d' % iter_no
-    log_str += ', loss : %.3f' % loss
-    log_str += ', reward_bound : %.1f' % reward_bound
-    log_str += ', reward_mean : %.1f' % reward_mean
+    log_str = "iter_no : %d" % iter_no
+    log_str += ", loss : %.3f" % loss
+    log_str += ", reward_bound : %.1f" % reward_bound
+    log_str += ", reward_mean : %.1f" % reward_mean
     print(log_str)
 
+    writer.add_scalar(tag="loss", scalar_value=loss, global_step=iter_no)
     writer.add_scalar(
-        tag='loss', scalar_value=loss, global_step=iter_no)
-    writer.add_scalar(
-        tag='reward_bound', scalar_value=reward_bound,
-        global_step=iter_no)
-    writer.add_scalar(
-        tag='reward_mean', scalar_value=reward_mean,
-        global_step=iter_no)
+        tag="reward_bound", scalar_value=reward_bound, global_step=iter_no
+    )
+    writer.add_scalar(tag="reward_mean", scalar_value=reward_mean, global_step=iter_no)
 
     if reward_mean > 199:
-        print('Rewardの平均値が目標値を超えたため、学習を停止します。')
+        print("Rewardの平均値が目標値を超えたため、学習を停止します。")
         break
 
     iter_no += 1

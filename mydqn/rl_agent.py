@@ -17,10 +17,7 @@ mode = "cui"
 if MONITOR:
     mode = "gui"
 
-kwargs = {
-    "mode": mode,
-    "carnum": 1
-}
+kwargs = {"mode": mode, "carnum": 1}
 
 
 class NeuaralNet(nn.Module):
@@ -42,8 +39,16 @@ class NeuaralNet(nn.Module):
 
 
 class DQNAgent:
-    def __init__(self, model, gamma=0.85, epsilon_decay=0.001, epsilon_min=0.01,
-                 learning_rate=0.005, memory_size=200, start_reduce_epsilon=200):
+    def __init__(
+        self,
+        model,
+        gamma=0.85,
+        epsilon_decay=0.001,
+        epsilon_min=0.01,
+        learning_rate=0.005,
+        memory_size=200,
+        start_reduce_epsilon=200,
+    ):
         self.model = model
         self.batch_size = model.batch_size
         self.batch_input_shape = model.batch_input_shape
@@ -90,13 +95,15 @@ class DQNAgent:
         total_loss = 0.0
         # sample_idx = range(len(samples))
         for i in sample_idx[::batch_size]:
-            batch = samples[i:i + batch_size]
+            batch = samples[i : i + batch_size]
             cur_states = np.array(batch[:, 0].tolist(), dtype=np.float32).reshape(
-                self.batch_input_shape)
+                self.batch_input_shape
+            )
             actions = np.array(batch[:, 1].tolist(), dtype=np.int32)
             rewards = np.array(batch[:, 2].tolist(), dtype=np.float32)
             next_states = np.array(batch[:, 3].tolist(), dtype=np.float32).reshape(
-                self.batch_input_shape)
+                self.batch_input_shape
+            )
             dones = np.array(batch[:, 4].tolist(), dtype=np.bool)
             q = self.model(torch.tensor(cur_states))
             target = copy.deepcopy(q.numpy())
@@ -105,8 +112,9 @@ class DQNAgent:
             Q_max_array = Q_max.numpy()
             for j in range(batch_size):
                 discreate_action = int(actions[j])
-                target[j][discreate_action] = rewards[j] + \
-                    Q_max_array[j] * self.gamma * (not dones[j])
+                target[j][discreate_action] = rewards[j] + Q_max_array[
+                    j
+                ] * self.gamma * (not dones[j])
             loss = self.train_step(cur_states, torch.tensor(target))
             total_loss += loss
 
@@ -136,7 +144,7 @@ if __name__ == "__main__":
     trials = 2000
     trial_len = 100
     train_freq = 10
-    TENSOR_BOARD_LOG_DIR = './result-sumo-light1'
+    TENSOR_BOARD_LOG_DIR = "./result-sumo-light1"
     writer = SummaryWriter(log_dir=TENSOR_BOARD_LOG_DIR)
 
     env = gym.make("sumo-light-v0", **kwargs)
@@ -189,11 +197,12 @@ if __name__ == "__main__":
         total_rewards.append(total_reward)
         reward_mean = total_reward / step_num
 
+        writer.add_scalar(tag="loss", scalar_value=total_loss, global_step=trial)
         writer.add_scalar(
-            tag='loss', scalar_value=total_loss, global_step=trial)
+            tag="total_reward", scalar_value=total_reward, global_step=trial
+        )
         writer.add_scalar(
-            tag='total_reward', scalar_value=total_reward, global_step=trial)
-        writer.add_scalar(
-            tag='reward_mean', scalar_value=reward_mean, global_step=trial)
+            tag="reward_mean", scalar_value=reward_mean, global_step=trial
+        )
 
         print(f"Finished trial {trial}")

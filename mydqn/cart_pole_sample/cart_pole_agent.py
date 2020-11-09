@@ -98,13 +98,15 @@ for epoch in range(EPOCH_NUM):
                 memory_ = np.random.permutation(memory)
                 memory_idx = range(len(memory_))
                 for i in memory_idx[::BATCH_SIZE]:
-                    batch = np.array(memory_[i:i + BATCH_SIZE])  # 経験ミニバッチ
+                    batch = np.array(memory_[i : i + BATCH_SIZE])  # 経験ミニバッチ
                     pobss = np.array(batch[:, 0].tolist(), dtype="float32").reshape(
-                        (BATCH_SIZE, obs_num))
+                        (BATCH_SIZE, obs_num)
+                    )
                     pacts = np.array(batch[:, 1].tolist(), dtype="int32")
                     rewards = np.array(batch[:, 2].tolist(), dtype="int32")
                     obss = np.array(batch[:, 3].tolist(), dtype="float32").reshape(
-                        (BATCH_SIZE, obs_num))
+                        (BATCH_SIZE, obs_num)
+                    )
                     dones = np.array(batch[:, 4].tolist(), dtype="bool")
                     # set y
                     pobss_ = Variable(torch.from_numpy(pobss))
@@ -114,8 +116,9 @@ for epoch in range(EPOCH_NUM):
                     maxq = maxs.numpy()  # maxQ
                     target = copy.deepcopy(q.data.numpy())
                     for j in range(BATCH_SIZE):
-                        target[j, pacts[j]] = rewards[j] + \
-                            GAMMA * maxq[j] * (not dones[j])  # 教師信号
+                        target[j, pacts[j]] = rewards[j] + GAMMA * maxq[j] * (
+                            not dones[j]
+                        )  # 教師信号
                     # Perform a gradient descent step
                     optimizer.zero_grad()
                     loss = nn.MSELoss()(q, Variable(torch.from_numpy(target)))
@@ -135,11 +138,17 @@ for epoch in range(EPOCH_NUM):
     total_rewards.append(total_reward)  # 累積報酬を記録
     if (epoch + 1) % LOG_FREQ == 0:
         # ログ出力間隔での平均累積報酬
-        r = sum(total_rewards[((epoch + 1) - LOG_FREQ):(epoch + 1)]) / LOG_FREQ
+        r = sum(total_rewards[((epoch + 1) - LOG_FREQ) : (epoch + 1)]) / LOG_FREQ
         elapsed_time = time.time() - start
         # ログ出力
-        print("\t".join(
-            map(str, [epoch + 1, EPSILON, r, total_step, str(elapsed_time) + "[sec]"])))
+        print(
+            "\t".join(
+                map(
+                    str,
+                    [epoch + 1, EPSILON, r, total_step, str(elapsed_time) + "[sec]"],
+                )
+            )
+        )
         start = time.time()
 if MONITOR:
     env.render(close=True)

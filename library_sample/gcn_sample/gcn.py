@@ -4,11 +4,9 @@ from torch_geometric.nn import GCNConv
 
 import gym
 
-args = {
-    'mode': 'cui'
-}
+args = {"mode": "cui"}
 
-env = gym.make('gym_sumo:sumo-v0', **args)
+env = gym.make("gym_sumo:sumo-v0", **args)
 dataset = env.graph.getGraph()
 
 
@@ -29,7 +27,7 @@ class Net(torch.nn.Module):
         return F.log_softmax(x, dim=1)
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = Net().to(device)
 data = dataset[0].to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)

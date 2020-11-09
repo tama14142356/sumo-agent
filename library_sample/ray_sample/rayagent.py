@@ -1,16 +1,13 @@
 # from ray import tune
 
-# args = {
-#     'mode': 'cui',
-#     'step': 1
-# }
+# args = {"mode": "cui", "step": 1}
 
 # tune.run(
 #     "PPO",
 #     config={
 #         "env": "CarRacing-v0"
 #         # "env_config": {**args}
-#     }
+#     },
 # )
 
 

@@ -19,11 +19,11 @@ def act_random(step):
 
 def main(kwargs):
     # env spaces
-    env = gym.make('sumo-light-v0', **kwargs)
+    env = gym.make("sumo-light-v0", **kwargs)
     obs_space = env.observation_space
     act_space = env.action_space
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # models
     policy_net = DQN(obs_space.shape[0], HIDDEN, act_space.n).to(device)
@@ -40,7 +40,7 @@ def main(kwargs):
 
     # learn
     for episode in range(EPISODE):
-        print(f'Episode {episode}')
+        print(f"Episode {episode}")
 
         # prepare
         obs = torch.as_tensor(env.reset(), dtype=torch.float)
@@ -88,8 +88,9 @@ def main(kwargs):
             # calc loss
             Q = policy_net(obs_batch).gather(1, action_batch)
             with torch.no_grad():
-                target_Q = (target_net(next_obs_batch).max(1, keepdim=True)[0]
-                            * ~done_batch)
+                target_Q = (
+                    target_net(next_obs_batch).max(1, keepdim=True)[0] * ~done_batch
+                )
             loss = F.smooth_l1_loss(Q, reward_batch + GAMMA * target_Q)
 
             # update model
@@ -104,19 +105,26 @@ def main(kwargs):
             target_net.load_state_dict(policy_net.state_dict())
 
         # writing tensorboard
-        save_write_result.writing_list(
-            tag="loss", target_list=loss_list, end_step=step)
+        save_write_result.writing_list(tag="loss", target_list=loss_list, end_step=step)
         save_write_result.writer.add_scalar(
-            tag="total_reward", scalar_value=total_reward, global_step=step)
+            tag="total_reward", scalar_value=total_reward, global_step=step
+        )
         save_write_result.writing_list(
-            tag="reward", target_list=reward_list, end_step=step)
+            tag="reward", target_list=reward_list, end_step=step
+        )
 
-    save_write_result.save_model(target_net, "target_model.pt")
-    save_write_result.save_model(policy_net, "policy_model.pt")
+    # save model parameters
+    target_filename, policy_filename = "target_model.pt", "policy_model.pt"
+    save_write_result.save_model(target_net, target_filename)
+    save_write_result.save_model(policy_net, policy_filename)
+    if device != torch.device("cpu"):
+        save_write_result.save_model(target_net, target_filename, device)
+        save_write_result.save_model(policy_net, policy_filename, device)
+
     env.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # hyperparameter
     BATCH_SIZE = 128
     GAMMA = 0.999
@@ -127,13 +135,10 @@ if __name__ == '__main__':
     HIDDEN = 96
     LR = 1e-4
     CAPACITY = 10000
-    EPISODE = 10 ** 6
-    save_write_result = SaveWriteResult()
+    EPISODE = 10
+    save_write_result = SaveWriteResult(EPISODE)
 
-    kwargs = {
-        "mode": "cui",
-        "carnum": 1
-    }
+    kwargs = {"mode": "cui", "carnum": 1}
 
     main(kwargs)
     save_write_result.close()
