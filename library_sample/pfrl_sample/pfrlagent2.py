@@ -16,28 +16,13 @@ import gym_sumo
 import gym.spaces
 import torch
 from torch import nn
+import copy
 
 import pfrl
 from pfrl import experiments
 from pfrl import utils
 from pfrl.policies import SoftmaxCategoricalHead
 from pfrl.policies import GaussianHeadWithFixedCovariance
-
-# default
-# kwargs = {
-#     "step_length": 0.01,
-#     "isgraph": True,
-#     "area": 0,(0: nishiwaseda)
-#     "carnum": 100,
-#     "mode": "gui" (or "cui"),
-#     "simlation_step": 100,
-#     "seed": None,
-#     "label": "default",
-# }
-
-kwargs1 = {"mode": "cui", "carnum": 1}
-kwargs2 = {"mode": "cui", "carnum": 1, "label": "default2"}
-gpudefault = 0 if torch.cuda.is_available() else -1
 
 
 def main():
@@ -46,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="sumo-light-v0")
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
-    parser.add_argument("--gpu", type=int, default=gpudefault)
+    parser.add_argument("--gpu", type=int, default=device)
     parser.add_argument(
         "--outdir",
         type=str,
@@ -77,10 +62,12 @@ def main():
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
-    def make_env(test, kwargs):
-        env = gym.make(args.env, **kwargs)
+    def make_env(test):
+        kwargs = copy.deepcopy(kwargs_eval if test else kwargs_learn)
         # Use different random seeds for train and test envs
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
+        kwargs["seed"] = env_seed
+        env = gym.make(args.env, **kwargs)
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
@@ -94,7 +81,7 @@ def main():
             env = pfrl.wrappers.Render(env)
         return env
 
-    train_env = make_env(test=False, kwargs=kwargs1)
+    train_env = make_env(test=False)
     timestep_limit = train_env.spec.max_episode_steps
     obs_space = train_env.observation_space
     action_space = train_env.action_space
@@ -134,7 +121,7 @@ def main():
     if args.load:
         agent.load(args.load)
 
-    eval_env = make_env(test=True, kwargs=kwargs2)
+    eval_env = make_env(test=True)
 
     if args.demo:
         eval_stats = experiments.eval_performance(
@@ -168,4 +155,7 @@ def main():
 
 
 if __name__ == "__main__":
+    kwargs_learn = {"mode": "cui", "carnum": 1, "label": "learn"}
+    kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval"}
+    device = 0 if torch.cuda.is_available() else -1
     main()
