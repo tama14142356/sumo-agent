@@ -16,6 +16,19 @@ class SaveWriteResult:
             log_num += 1
         self.log_dir = tmp_dir
         self.writer = SummaryWriter(log_dir=self.log_dir)
+        layout = {
+            "Aggregate Charts": {
+                "total_reward margin": [
+                    "Margin",
+                    ["total_reward", "reward_min", "reward_max"],
+                ],
+                "reward total_reward loss multiline": [
+                    "Multiline",
+                    ["reward", "total_reward", "loss"],
+                ],
+            }
+        }
+        self.writer.add_custom_scalars(layout)
         self.model_save_filename = os.path.join(self.log_dir, "model.pt")
         self.result_path_log_path = os.path.join(
             os.path.dirname(__file__), "result_path_log.log"

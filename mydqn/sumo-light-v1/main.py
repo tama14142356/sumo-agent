@@ -101,7 +101,9 @@ def main():
     # learn
     for i_episode in range(EPISODES):
         episode_return = 0
+        reward_min, reward_max = 0, 0
         state = obs_to_tensor(env.reset())
+        local_step = 0
         done = False
 
         # episode
@@ -109,6 +111,8 @@ def main():
             # calc action, act
             action = select_action(state, policy_net).cpu()
             next_state, reward, done, _ = env.step(action.item())
+            reward_min = reward if local_step == 0 else min(reward_min, reward)
+            reward_max = reward if local_step == 0 else min(reward_max, reward)
             episode_return += reward
 
             # push to memory
@@ -125,9 +129,16 @@ def main():
             save_write_result.writer.add_scalar(
                 tag="reward", scalar_value=reward, global_step=steps_done
             )
+            local_step += 1
 
         save_write_result.writer.add_scalar(
             tag="total_reward", scalar_value=episode_return, global_step=steps_done
+        )
+        save_write_result.writer.add_scalar(
+            tag="reward_min", scalar_value=reward_min, global_step=steps_done
+        )
+        save_write_result.writer.add_scalar(
+            tag="reward_max", scalar_value=reward_max, global_step=steps_done
         )
 
         # update target
