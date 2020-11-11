@@ -144,6 +144,7 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True,
         )
 
 

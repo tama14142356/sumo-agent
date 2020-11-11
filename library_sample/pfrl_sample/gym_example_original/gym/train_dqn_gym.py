@@ -221,6 +221,7 @@ def main():
             outdir=args.outdir,
             eval_env=eval_env,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True,
         )
     else:
         # using impala mode when given num of envs
@@ -253,6 +254,7 @@ def main():
             outdir=args.outdir,
             stop_event=learner.stop_event,
             exception_event=exception_event,
+            use_tensorboard=True,
         )
 
         poller.stop()

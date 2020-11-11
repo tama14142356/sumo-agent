@@ -168,6 +168,7 @@ def main():
             outdir=args.outdir,
             eval_env=eval_env,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True,
         )
 
 
