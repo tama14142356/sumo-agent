@@ -3,7 +3,6 @@ import random
 
 import gym
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
@@ -150,6 +149,9 @@ def main():
         # log
         print(f"Episode {i_episode}: return={episode_return}")
 
+    # save model
+    save_write_result.save_model(policy_net, filename="policy_model.pt")
+    save_write_result.save_model(target_net, filename="target_model.pt")
     env.close()
 
 
