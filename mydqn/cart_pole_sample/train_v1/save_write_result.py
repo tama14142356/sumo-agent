@@ -24,7 +24,7 @@ class SaveWriteResult:
                 ],
                 "reward total_reward loss multiline": [
                     "Multiline",
-                    ["agent/reward", "agent/total_reward", "loss"],
+                    ["agent/reward", "agent/total_reward", "agent/loss"],
                 ],
             }
         }

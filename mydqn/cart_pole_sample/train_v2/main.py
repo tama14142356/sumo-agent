@@ -61,7 +61,7 @@ def optimize_model(memory, policy_net, target_net, optimizer):
     optimizer.step()
 
     save_write_result.writer.add_scalar(
-        tag="loss", scalar_value=loss.item(), global_step=steps_done
+        tag="agent/loss", scalar_value=loss.item(), global_step=steps_done
     )
 
 
@@ -128,18 +128,20 @@ def main():
             optimize_model(memory, policy_net, target_net, optimizer)
 
             save_write_result.writer.add_scalar(
-                tag="reward", scalar_value=reward, global_step=steps_done
+                tag="agent/reward", scalar_value=reward, global_step=steps_done
             )
             local_step += 1
 
         save_write_result.writer.add_scalar(
-            tag="total_reward", scalar_value=episode_return, global_step=steps_done
+            tag="agent/total_reward",
+            scalar_value=episode_return,
+            global_step=steps_done,
         )
         save_write_result.writer.add_scalar(
-            tag="reward_min", scalar_value=reward_min, global_step=steps_done
+            tag="agent/reward_min", scalar_value=reward_min, global_step=steps_done
         )
         save_write_result.writer.add_scalar(
-            tag="reward_max", scalar_value=reward_max, global_step=steps_done
+            tag="agent/reward_max", scalar_value=reward_max, global_step=steps_done
         )
 
         # update target
@@ -152,6 +154,10 @@ def main():
     # save model
     save_write_result.save_model(policy_net, filename="policy_model.pt")
     save_write_result.save_model(target_net, filename="target_model.pt")
+    if str(device) != "cpu":
+        cpu_device = torch.device("cpu")
+        save_write_result.save_model(policy_net, "policy_model.pt", cpu_device)
+        save_write_result.save_model(target_net, "target_model.pt", cpu_device)
     env.close()
 
 
