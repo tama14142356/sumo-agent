@@ -42,7 +42,7 @@ def main():
             " If it does not exist, it will be created."
         ),
     )
-    parser.add_argument("--env", type=str, default="Pendulum-v0")
+    parser.add_argument("--env", type=str, default="CartPole-v0")
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--final-exploration-steps", type=int, default=10 ** 4)
