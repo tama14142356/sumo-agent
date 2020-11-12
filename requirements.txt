@@ -1,0 +1,23 @@
+pfrl==0.1.0
+tensorboard==2.3.0
+gym==0.17.3
+
+
+# from https://download.pytorch.org/whl/torch_stable.html
+# cpu
+# torch==1.6.0+cpu
+# torchvision==0.7.0+cpu
+# torch-scatter==2.0.5
+# torch-sparse==0.6.7
+# torch-cluster==1.5.7
+# torch-spline-conv==1.2.0
+# torch-geometric==1.6.1
+
+# gpu
+# torch==1.6.0
+# torchvision==0.7.0
+# torch-scatter==latest+cu102
+# torch-sparse==latest+cu102
+# torch-cluster==latest+cu102
+# torch-spline-conv==latest+cu102
+# torch-geometric

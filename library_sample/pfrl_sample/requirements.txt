@@ -1,0 +1,12 @@
+pfrl==0.1.0
+tensorboard==2.3.0
+gym==0.17.3
+
+# from https://download.pytorch.org/whl/torch_stable.html
+# cpu
+# torch==1.6.0+cpu
+# torchvision==0.7.0+cpu
+
+# gpu
+# torch==1.6.0
+# torchvision==0.7.0
