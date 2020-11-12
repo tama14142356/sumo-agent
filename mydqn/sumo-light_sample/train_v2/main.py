@@ -60,9 +60,7 @@ def optimize_model(memory, policy_net, target_net, optimizer):
     for param in policy_net.parameters():
         param.grad.data.clamp_(-1, 1)
     optimizer.step()
-    save_write_result.writer.add_scalar(
-        tag="loss", scalar_value=loss.item(), global_step=steps_done
-    )
+    return loss.item()
 
 
 def select_action(state, policy_net):
@@ -101,9 +99,8 @@ def main():
     # learn
     for i_episode in range(EPISODES):
         episode_return = 0
-        reward_min, reward_max = 0, 0
+        reward_list, loss_list = [], []
         state = obs_to_tensor(env.reset())
-        local_step = 0
         done = False
 
         # episode
@@ -111,9 +108,8 @@ def main():
             # calc action, act
             action = select_action(state, policy_net).cpu()
             next_state, reward, done, _ = env.step(action.item())
-            reward_min = reward if local_step == 0 else min(reward_min, reward)
-            reward_max = reward if local_step == 0 else min(reward_max, reward)
             episode_return += reward
+            reward_list.append(reward)
 
             # push to memory
             if done:
@@ -125,20 +121,30 @@ def main():
 
             state = next_state
 
-            optimize_model(memory, policy_net, target_net, optimizer)
-            save_write_result.writer.add_scalar(
-                tag="reward", scalar_value=reward, global_step=steps_done
-            )
-            local_step += 1
+            loss_value = optimize_model(memory, policy_net, target_net, optimizer)
+            loss_list.append(loss_value)
+
+        save_write_result.writing_list(
+            tag="agent/loss", target_list=loss_list, end_step=steps_done
+        )
+        save_write_result.writing_list(
+            tag="agent/reward", target_list=reward_list, end_step=steps_done
+        )
 
         save_write_result.writer.add_scalar(
-            tag="total_reward", scalar_value=episode_return, global_step=steps_done
+            tag="agent/total_reward",
+            scalar_value=episode_return,
+            global_step=steps_done,
         )
         save_write_result.writer.add_scalar(
-            tag="reward_min", scalar_value=reward_min, global_step=steps_done
+            tag="agent/reward_min",
+            scalar_value=min(reward_list),
+            global_step=steps_done,
         )
         save_write_result.writer.add_scalar(
-            tag="reward_max", scalar_value=reward_max, global_step=steps_done
+            tag="agent/reward_max",
+            scalar_value=max(reward_list),
+            global_step=steps_done,
         )
 
         # update target
@@ -148,11 +154,22 @@ def main():
         # log
         print(f"Episode {i_episode}: return={episode_return}")
 
+    # save model parameters
+    target_filename, policy_filename = "target_model.pt", "policy_model.pt"
+    save_write_result.save_model(target_net, target_filename)
+    save_write_result.save_model(policy_net, policy_filename)
+    if str(device) != "cpu":
+        cpu_device = torch.device("cpu")
+        save_write_result.save_model(policy_net, policy_filename, cpu_device)
+        save_write_result.save_model(target_net, target_filename, cpu_device)
+
+    env.close()
+
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    kwargs_default = {"mode": "cui", "carnum": 1}
+    kwargs_default = {"mode": "cui", "carnum": 1, "label": "learn"}
     kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval"}
     env = make_env(kwargs_default)
 

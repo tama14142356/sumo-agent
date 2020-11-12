@@ -105,21 +105,30 @@ def main(kwargs):
             target_net.load_state_dict(policy_net.state_dict())
 
         # writing tensorboard
-        save_write_result.writing_list(tag="loss", target_list=loss_list, end_step=step)
-        save_write_result.writer.add_scalar(
-            tag="total_reward", scalar_value=total_reward, global_step=step
+        save_write_result.writing_list(
+            tag="agent/loss", target_list=loss_list, end_step=step
         )
         save_write_result.writing_list(
-            tag="reward", target_list=reward_list, end_step=step
+            tag="agent/reward", target_list=reward_list, end_step=step
         )
 
+        save_write_result.writer.add_scalar(
+            tag="agent/reward_min", scalar_value=min(reward_list), global_step=step
+        )
+        save_write_result.writer.add_scalar(
+            tag="agent/reward_max", scalar_value=max(reward_list), global_step=step
+        )
+        save_write_result.writer.add_scalar(
+            tag="agent/total_reward", scalar_value=total_reward, global_step=step
+        )
     # save model parameters
     target_filename, policy_filename = "target_model.pt", "policy_model.pt"
     save_write_result.save_model(target_net, target_filename)
     save_write_result.save_model(policy_net, policy_filename)
-    if device != torch.device("cpu"):
-        save_write_result.save_model(target_net, target_filename, device)
-        save_write_result.save_model(policy_net, policy_filename, device)
+    if str(device) != "cpu":
+        cpu_device = torch.device("cpu")
+        save_write_result.save_model(policy_net, policy_filename, cpu_device)
+        save_write_result.save_model(target_net, target_filename, cpu_device)
 
     env.close()
 

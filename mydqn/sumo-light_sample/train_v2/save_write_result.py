@@ -20,11 +20,11 @@ class SaveWriteResult:
             "Aggregate Charts": {
                 "total_reward margin": [
                     "Margin",
-                    ["total_reward", "reward_min", "reward_max"],
+                    ["agent/total_reward", "agent/reward_min", "agent/reward_max"],
                 ],
                 "reward total_reward loss multiline": [
                     "Multiline",
-                    ["reward", "total_reward", "loss"],
+                    ["agent/reward", "agent/total_reward", "agent/loss"],
                 ],
             }
         }
