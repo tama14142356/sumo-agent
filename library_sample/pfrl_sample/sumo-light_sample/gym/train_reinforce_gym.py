@@ -64,6 +64,8 @@ def main():
         kwargs = copy.deepcopy(kwargs_eval if test else kwargs_learn)
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
         kwargs["seed"] = env_seed
+        if args.monitor:
+            kwargs["mode"] = "gui"
         env = gym.make(args.env, **kwargs)
         # Use different random seeds for train and test envs
         env.seed(env_seed)
@@ -148,6 +150,7 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True,
         )
 
 

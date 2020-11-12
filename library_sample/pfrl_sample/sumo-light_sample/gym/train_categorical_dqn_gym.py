@@ -71,6 +71,8 @@ def main():
         kwargs = copy.deepcopy(kwargs_eval if test else kwargs_learn)
         env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
         kwargs["seed"] = env_seed
+        if args.monitor:
+            kwargs["mode"] = "gui"
         env = gym.make(args.env, **kwargs)
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
@@ -172,6 +174,7 @@ def main():
             outdir=args.outdir,
             eval_env=eval_env,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True,
         )
 
 

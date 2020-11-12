@@ -111,6 +111,8 @@ def main():
         kwargs = copy.deepcopy(kwargs_tmp)
         kwargs["seed"] = env_seed
         kwargs["label"] = kwargs_tmp["label"] + str(process_seed)
+        if args.monitor:
+            kwargs["mode"] = "gui"
         env = gym.make(args.env, **kwargs)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
@@ -228,6 +230,7 @@ def main():
             outdir=args.outdir,
             eval_env=eval_env,
             train_max_episode_len=timestep_limit,
+            use_tensorboard=True,
         )
     else:
         # using impala mode when given num of envs
@@ -260,6 +263,7 @@ def main():
             outdir=args.outdir,
             stop_event=learner.stop_event,
             exception_event=exception_event,
+            use_tensorboard=True,
         )
 
         poller.stop()
