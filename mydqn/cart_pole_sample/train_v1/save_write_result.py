@@ -3,7 +3,7 @@ import os
 import torch
 import copy
 
-TENSOR_BOARD_LOG_DIR = "results/sumo-light/mydqn_result/"
+TENSOR_BOARD_LOG_DIR = "results/cartpole/mydqn_result/"
 DEVICE_ORIGIN = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
