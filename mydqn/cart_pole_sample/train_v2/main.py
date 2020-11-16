@@ -41,10 +41,18 @@ def optimize_model(memory, policy_net, target_net, optimizer):
     reward_batch = torch.cat(batch.reward).to(device)
 
     # now Q
+    # それぞれのactionに対するstateの値を集めてくる
+    # n_actions = 5
+    # state_batch = torch.tensor([[1.2, 2.0, 0.4, 0.5], [1.0, 0.2, 0.3, 0.8]])
+    # Q = policy_net(state_batch)
+    #   = torch.tensor([[1.0, 0.2, 0.6, -1.0, -0.6], [-1.0, -0.8, 0.6, 0.1, 2.0]])
+    # action_batch = torch.tensor([[4], [2]])
+    # の時、state_action_values = torch.tensor([[-0.6], [-0.8]])となる。
     state_action_values = policy_net(state_batch).gather(1, action_batch)
 
     # target Q
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
+    # next state=Noneのところには0.0を入れ、他のところは、最大となるQ値を入れる。
     next_state_values[non_final_mask] = (
         target_net(non_final_next_states).max(1)[0].detach()
     )
@@ -57,6 +65,7 @@ def optimize_model(memory, policy_net, target_net, optimizer):
     optimizer.zero_grad()
     loss.backward()
     for param in policy_net.parameters():
+        # パラメータを[-1, 1]に制限
         param.grad.data.clamp_(-1, 1)
     optimizer.step()
 
@@ -79,6 +88,7 @@ def select_action(state, policy_net):
     # epsilon-greedy
     if sample > eps_threshold:
         with torch.no_grad():
+            # 最大値があるindexの取得し、そのshapeを(1, 1)に変更する。
             return policy_net(state.to(device)).max(1)[1].view(1, 1)
     else:
         return torch.tensor(
@@ -109,6 +119,7 @@ def main():
         # episode
         while not done:
             # calc action, act
+            # cpuメモリを使うテンソルに変換
             action = select_action(state, policy_net).cpu()
             next_state, reward, done, _ = env.step(action.item())
             episode_return += reward
@@ -152,8 +163,8 @@ def main():
         print(f"Episode {i_episode}: return={episode_return}")
 
     # save model
-    save_write_result.save_model(policy_net, filename="policy_model.pt")
-    save_write_result.save_model(target_net, filename="target_model.pt")
+    save_write_result.save_model(policy_net, filename="policy_model.pt", device=device)
+    save_write_result.save_model(target_net, filename="target_model.pt", device=device)
     if str(device) != "cpu":
         cpu_device = torch.device("cpu")
         save_write_result.save_model(policy_net, "policy_model.pt", cpu_device)
@@ -179,7 +190,7 @@ if __name__ == "__main__":
     EPS_END = 0.05
     EPS_DECAY = 200
     TARGET_UPDATE = 10
-    EPISODES = 1000
+    EPISODES = 10000
     HIDDEN = 128
     LR = 1e-3
     save_write_result = SaveWriteResult(EPISODES)
