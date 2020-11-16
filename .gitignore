@@ -8,8 +8,12 @@
 **.pydevproject**
 **.vs**
 
-# result dir
+# result, temp dir
 **results**
+**video**
+**movie**
+**tmp**
+**temp**
 
 # log
 *.log
