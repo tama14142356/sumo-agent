@@ -36,8 +36,8 @@ def main():
     if str(device) == "cpu":
         policy_net_file_name = "policy_model_cpu.pt"
         target_net_file_name = "target_model_cpu.pt"
-    save_write_result.load_model(policy_net, policy_net_file_name)
-    save_write_result.load_model(target_net, target_net_file_name)
+    save_write_result.load_model(policy_net, policy_net_file_name, 1)
+    save_write_result.load_model(target_net, target_net_file_name, 1)
     print(policy_net.state_dict(), " load")
     print(target_net.state_dict(), " load")
 

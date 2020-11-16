@@ -21,18 +21,32 @@ class SaveWriteResult:
             log_num += 1
         self.log_dir = tmp_dir
         self.writer = SummaryWriter(log_dir=self.log_dir)
-        layout = {
-            "Aggregate Charts": {
-                "total_reward margin": [
-                    "Margin",
-                    ["agent/total_reward", "agent/reward_min", "agent/reward_max"],
-                ],
-                "reward total_reward loss multiline": [
-                    "Multiline",
-                    ["agent/reward", "agent/total_reward", "loss"],
-                ],
+        if demo:
+            layout = {
+                "Aggregate Charts": {
+                    "total_reward margin": [
+                        "Margin",
+                        ["eval/total_reward", "eval/reward_min", "eval/reward_max"],
+                    ],
+                    "reward total_reward loss multiline": [
+                        "Multiline",
+                        ["eval/reward", "eval/total_reward", "eval/loss"],
+                    ],
+                }
             }
-        }
+        else:
+            layout = {
+                "Aggregate Charts": {
+                    "total_reward margin": [
+                        "Margin",
+                        ["agent/total_reward", "agent/reward_min", "agent/reward_max"],
+                    ],
+                    "reward total_reward loss multiline": [
+                        "Multiline",
+                        ["agent/reward", "agent/total_reward", "agent/loss"],
+                    ],
+                }
+            }
         self.writer.add_custom_scalars(layout)
         self.model_save_filename = os.path.join(self.log_dir, "model.pt")
         self.result_path_log_path = os.path.join(
@@ -70,7 +84,7 @@ class SaveWriteResult:
         else:
             torch.save(model.state_dict(), filepath)
 
-    def load_model(self, model, filename=""):
+    def load_model(self, model, filename="", last_num=1):
         file_path_name = filename
         if len(filename) <= 0:
             file_path_name = self.model_save_filename
@@ -80,7 +94,9 @@ class SaveWriteResult:
                 file_tmp_name = os.path.basename(self.model_save_filename)
             with open(self.result_path_log_path, "r") as f:
                 l_strip = [s.strip() for s in f.readlines()]
-                file_path = l_strip[len(l_strip) - 1]
+                if last_num > len(l_strip) or last_num <= 0:
+                    last_num = 1
+                file_path = l_strip[len(l_strip) - last_num]
             file_path_name = os.path.join(file_path, file_tmp_name)
         loaded_model = torch.load(file_path_name)
         model.load_state_dict(loaded_model)

@@ -190,7 +190,7 @@ if __name__ == "__main__":
     EPS_END = 0.05
     EPS_DECAY = 200
     TARGET_UPDATE = 10
-    EPISODES = 10000
+    EPISODES = 1000
     HIDDEN = 128
     LR = 1e-3
     save_write_result = SaveWriteResult(EPISODES)
