@@ -4,7 +4,7 @@ set -Ceu
 
 project_root=$(git rev-parse --show-superproject-working-tree --show-toplevel | head -1)
 tempdir=$(mktemp -d)
-outdir=$project_root/results/sumo-light/prfl_result/categorical_dqn/$(basename $tempdir)
+outdir=$project_root/results/sumo-light/pfrl_result/categorical_dqn/$(basename $tempdir)
 
 gpu="$1"
 
