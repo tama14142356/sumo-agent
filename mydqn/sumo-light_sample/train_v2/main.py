@@ -22,7 +22,7 @@ def obs_to_tensor(obs):
 
 def optimize_model(memory, policy_net, target_net, optimizer):
     if len(memory) < BATCH_SIZE:
-        return
+        return -1.0
 
     # get batch from memory
     transitions = memory.sample(BATCH_SIZE)
@@ -122,7 +122,8 @@ def main():
             state = next_state
 
             loss_value = optimize_model(memory, policy_net, target_net, optimizer)
-            loss_list.append(loss_value)
+            if loss_value > 0:
+                loss_list.append(loss_value)
 
         save_write_result.writing_list(
             tag="agent/loss", target_list=loss_list, end_step=steps_done
