@@ -156,8 +156,8 @@ def main():
 
     # save model parameters
     target_filename, policy_filename = "target_model.pt", "policy_model.pt"
-    save_write_result.save_model(target_net, target_filename)
-    save_write_result.save_model(policy_net, policy_filename)
+    save_write_result.save_model(target_net, target_filename, device)
+    save_write_result.save_model(policy_net, policy_filename, device)
     if str(device) != "cpu":
         cpu_device = torch.device("cpu")
         save_write_result.save_model(policy_net, policy_filename, cpu_device)
@@ -192,3 +192,4 @@ if __name__ == "__main__":
 
     save_write_result = SaveWriteResult(EPISODES)
     main()
+    save_write_result.close()
