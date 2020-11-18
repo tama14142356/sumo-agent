@@ -11,5 +11,7 @@ cd $dir_name/../gym
 
 # gym/reinforce
 python train_reinforce_gym.py --steps 10000 --batchsize 128 --outdir $outdir/train --gpu -1
+model=$(find $outdir/train -name "best")
+python train_reinforce_gym.py --eval-n-runs 1 --demo --monitor --load $model --eval-n-runs 100 --outdir $outdir/best_demo --gpu -1
 model=$(find $outdir/train -name "*_finish")
-python train_reinforce_gym.py --demo --monitor --load $model --eval-n-runs 100 --outdir $outdir/demo --gpu -1
+python train_reinforce_gym.py --eval-n-runs 1 --demo --monitor --load $model --eval-n-runs 100 --outdir $outdir/finish_demo --gpu -1
