@@ -17,6 +17,7 @@ import gym.spaces
 import torch
 from torch import nn
 import copy
+import eval_sumo
 
 import pfrl
 from pfrl import experiments, utils
@@ -124,7 +125,14 @@ def main():
     eval_env = make_env(test=True)
 
     if args.demo:
-        eval_stats = experiments.eval_performance(
+        # eval_stats = experiments.eval_performance(
+        #     env=eval_env,
+        #     agent=agent,
+        #     n_steps=None,
+        #     n_episodes=args.eval_n_runs,
+        #     max_episode_len=timestep_limit,
+        # )
+        eval_stats = eval_sumo.eval_performance(
             env=eval_env,
             agent=agent,
             n_steps=None,

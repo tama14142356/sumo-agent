@@ -22,6 +22,7 @@ import torch
 import torch.optim as optim
 from gym import spaces
 import copy
+import eval_sumo
 
 import pfrl
 from pfrl import experiments, explorers
@@ -32,8 +33,6 @@ from pfrl.agents.dqn import DQN
 
 def main():
     import logging
-
-    logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -92,6 +91,9 @@ def main():
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
     print("Output files are saved in {}".format(args.outdir))
+
+    log_file_name = os.path.join(args.outdir, "log.log")
+    logging.basicConfig(level=logging.INFO, filename=log_file_name)
 
     # Set different random seeds for different subprocesses.
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
@@ -202,7 +204,14 @@ def main():
     eval_env = make_env(test=True)
 
     if args.demo:
-        eval_stats = experiments.eval_performance(
+        # eval_stats = experiments.eval_performance(
+        #     env=eval_env,
+        #     agent=agent,
+        #     n_steps=None,
+        #     n_episodes=args.eval_n_runs,
+        #     max_episode_len=timestep_limit,
+        # )
+        eval_stats = eval_sumo.eval_performance(
             env=eval_env,
             agent=agent,
             n_steps=None,
