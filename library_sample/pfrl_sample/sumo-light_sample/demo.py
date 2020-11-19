@@ -209,7 +209,7 @@ def main():
                 # env.render()
                 action = agent.act(obs)
                 obs, reward, done, _ = env.step(action)
-                cur_speed = env.traci_connect.vehicle.getSpeed("veh0")
+                cur_speed = env.get_speed()
                 cur_sm_time = env.traci_connect.simulation.getTime()
                 cur_step = env.get_cur_step()
                 R += reward
