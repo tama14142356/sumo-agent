@@ -53,7 +53,7 @@ def main():
     parser.add_argument("--noisy-net-sigma", type=float, default=None)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--steps", type=int, default=10 ** 5)
+    parser.add_argument("--steps", type=int, default=10 ** 8)
     parser.add_argument("--prioritized-replay", action="store_true")
     parser.add_argument("--replay-start-size", type=int, default=1000)
     parser.add_argument("--target-update-interval", type=int, default=10 ** 2)
