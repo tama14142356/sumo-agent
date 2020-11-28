@@ -1,6 +1,8 @@
 import logging
 import statistics
 import numpy as np
+import os
+import subprocess
 
 
 def _run_episodes_sumo(
@@ -141,3 +143,13 @@ def eval_performance(
         min=np.min(scores),
     )
     return stats
+
+
+def save_sumo_version(outdir):
+    with open(os.path.join(outdir, "sumo-version.txt"), "wb") as f:
+        f.write(subprocess.check_output("sumo --version".split()))
+
+
+if __name__ == "__main__":
+    os.makedirs("./tmp", exist_ok=True)
+    save_sumo_version("./tmp")

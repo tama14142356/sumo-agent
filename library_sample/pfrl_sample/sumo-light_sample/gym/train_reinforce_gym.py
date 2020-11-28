@@ -60,6 +60,7 @@ def main():
     utils.set_random_seed(args.seed)
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
+    eval_sumo.save_sumo_version(args.outdir)
 
     def make_env(test):
         kwargs = copy.deepcopy(kwargs_eval if test else kwargs_learn)
