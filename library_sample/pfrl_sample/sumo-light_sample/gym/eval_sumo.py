@@ -31,9 +31,9 @@ def _run_episodes_sumo(
             info = {}
         action = agent.act(obs)
         obs, reward, done, info = env.step(action)
-        cur_speed = env.get_speed()
-        cur_sm_time = env.traci_connect.simulation.getTime()
-        cur_step = env.get_cur_step()
+        cur_speed = info.get("speed")
+        cur_sm_time = info.get("cur_sm_step")
+        cur_step = info.get("cur_step")
         test_r += reward
         episode_len += 1
         timestep += 1
