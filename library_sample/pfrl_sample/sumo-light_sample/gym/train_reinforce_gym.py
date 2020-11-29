@@ -29,7 +29,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="sumo-light-v0")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
+    parser.add_argument("--seed", type=int, default=3, help="Random seed [0, 2 ** 32)")
     parser.add_argument("--gpu", type=int, default=device)
     parser.add_argument(
         "--outdir",

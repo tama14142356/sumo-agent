@@ -66,6 +66,7 @@ def main():
     utils.set_random_seed(args.seed)
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
+    eval_sumo.save_sumo_version(args.outdir)
     print("Output files are saved in {}".format(args.outdir))
 
     def make_env(test):
