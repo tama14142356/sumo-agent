@@ -14,6 +14,6 @@ cd $dir_name/../src
 # gym/dqn
 CUDA_VISIBLE_DEVICES=$gpu python train_dqn_gym.py --outdir $outdir/train --gpu 0
 model=$(find $outdir/train -name "best")
-CUDA_VISIBLE_DEVICES=$gpu python train_dqn_gym.py --eval-n-runs 1 --demo --monitor --load $model --outdir $outdir/best_demo --gpu 0
+CUDA_VISIBLE_DEVICES=$gpu python train_dqn_gym.py --eval-n-runs 1 --demo --monitor --load $model --outdir $outdir/demo/best --gpu 0
 model=$(find $outdir/train -name "*_finish")
-CUDA_VISIBLE_DEVICES=$gpu python train_dqn_gym.py --eval-n-runs 1 --demo --monitor --load $model --outdir $outdir/finish_demo --gpu 0
+CUDA_VISIBLE_DEVICES=$gpu python train_dqn_gym.py --eval-n-runs 1 --demo --monitor --load $model --outdir $outdir/demo/finish --gpu 0
