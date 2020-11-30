@@ -8,6 +8,7 @@ To solve CartPole-v0, run:
 """
 
 import argparse
+import os
 import sys
 
 import gym
@@ -22,8 +23,6 @@ from pfrl import experiments, explorers, q_functions, replay_buffers, utils
 
 def main():
     import logging
-
-    logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -68,6 +67,9 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
     eval_sumo.save_sumo_version(args.outdir)
     print("Output files are saved in {}".format(args.outdir))
+
+    log_file_name = os.path.join(args.outdir, "log.log")
+    logging.basicConfig(level=logging.INFO, filename=log_file_name)
 
     def make_env(test):
         kwargs = copy.deepcopy(kwargs_eval if test else kwargs_learn)

@@ -10,13 +10,14 @@ To solve InvertedPendulum-v1, run:
     python train_reinforce_gym.py --env InvertedPendulum-v1
 """
 import argparse
+import os
+import copy
 
 import gym
 import gym_sumo
 import gym.spaces
 import torch
 from torch import nn
-import copy
 import eval_sumo
 
 import pfrl
@@ -54,13 +55,15 @@ def main():
     parser.add_argument("--monitor", action="store_true")
     args = parser.parse_args()
 
-    logging.basicConfig(level=args.log_level)
-
     # Set a random seed used in PFRL.
     utils.set_random_seed(args.seed)
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     eval_sumo.save_sumo_version(args.outdir)
+    print("Output files are saved in {}".format(args.outdir))
+
+    log_file_name = os.path.join(args.outdir, "log.log")
+    logging.basicConfig(level=args.log_level, filename=log_file_name)
 
     def make_env(test):
         kwargs = copy.deepcopy(kwargs_eval if test else kwargs_learn)
