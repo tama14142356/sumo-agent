@@ -9,7 +9,7 @@ outdir=$project_root/results/sumo-light/pfrl_result/categorical_dqn/$(basename $
 gpu="$1"
 
 dir_name=$(dirname $0)
-cd $dir_name/../gym
+cd $dir_name/../src
 
 # gym/categorical_dqn
 CUDA_VISIBLE_DEVICES=$gpu python train_categorical_dqn_gym.py --outdir $outdir/train --gpu 0

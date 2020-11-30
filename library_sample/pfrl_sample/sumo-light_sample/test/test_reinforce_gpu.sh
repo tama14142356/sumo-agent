@@ -9,7 +9,7 @@ outdir=$project_root/results/sumo-light/pfrl_result/reinforce/$(basename $tempdi
 gpu="$1"
 
 dir_name=$(dirname $0)
-cd $dir_name/../gym
+cd $dir_name/../src
 
 # gym/reinforce
 CUDA_VISIBLE_DEVICES=$gpu python train_reinforce_gym.py --outdir $outdir/train --gpu 0

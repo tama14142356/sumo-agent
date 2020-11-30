@@ -7,7 +7,7 @@ tempdir=$(mktemp -d)
 outdir=$project_root/results/sumo-light/pfrl_result/dqn/$(basename $tempdir)
 
 dir_name=$(dirname $0)
-cd $dir_name/../gym
+cd $dir_name/../src
 
 # gym/dqn
 python train_dqn_gym.py --steps 10000 --replay-start-size 50 --outdir $outdir/train --gpu -1

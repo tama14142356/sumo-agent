@@ -7,7 +7,7 @@ tempdir=$(mktemp -d)
 outdir=$project_root/results/sumo-light/pfrl_result/reinforce/$(basename $tempdir)
 
 dir_name=$(dirname $0)
-cd $dir_name/../gym
+cd $dir_name/../src
 
 # gym/reinforce
 python train_reinforce_gym.py --steps 10000 --batchsize 128 --outdir $outdir/train --gpu -1
