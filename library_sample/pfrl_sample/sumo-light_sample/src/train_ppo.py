@@ -52,7 +52,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=2 * 10 ** 6,
+        default=10 ** 6,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -180,7 +180,7 @@ def main():
             ),
         )
     else:
-        hidden_size = 64
+        hidden_size = 32
         policy = torch.nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.Tanh(),
@@ -216,7 +216,7 @@ def main():
     # Combine a policy and a value function into a single model
     model = pfrl.nn.Branched(policy, vf)
 
-    opt = torch.optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
+    opt = torch.optim.Adam(model.parameters(), lr=3e-5, eps=1e-5)
 
     agent = PPO(
         model,
