@@ -102,6 +102,16 @@ def main():
         help="Number of epochs to update model for per PPO iteration.",
     )
     parser.add_argument("--batch-size", type=int, default=64, help="Minibatch size")
+    parser.add_argument(
+        "--video-freq", type=int, default=1, help="record video freaquency"
+    )
+    parser.add_argument(
+        "--hidden-size", type=int, default=32, help="number of hidden neural nerwork"
+    )
+    parser.add_argument("--lr", type=float, default=3e-5, help="learning rate")
+    parser.add_argument("--eps", type=float, default=1e-5)
+    parser.add_argument("--gamma", type=float, default=0.995)
+    parser.add_argument("--lambd", type=float, default=0.97)
     args = parser.parse_args()
 
     # Set a random seed used in PFRL
@@ -136,7 +146,7 @@ def main():
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
             env = pfrl.wrappers.Monitor(
-                env, args.outdir, video_callable=(lambda e: e % 1 == 0)
+                env, args.outdir, (lambda e: e % args.video_freq)
             )
         if args.render:
             env = pfrl.wrappers.Render(env)
@@ -157,6 +167,7 @@ def main():
     action_space = sample_env.action_space
     print("Observation space:", obs_space)
     print("Action space:", action_space)
+    sample_env.close()
 
     # assert isinstance(action_space, gym.spaces.Box)
 
@@ -166,14 +177,15 @@ def main():
     )
 
     obs_size = obs_space.low.size
+    hidden_size = args.hidden_size
     if isinstance(action_space, gym.spaces.Box):
         action_size = action_space.low.size
         policy = torch.nn.Sequential(
-            nn.Linear(obs_size, 64),
+            nn.Linear(obs_size, hidden_size),
             nn.Tanh(),
-            nn.Linear(64, 64),
+            nn.Linear(hidden_size, hidden_size),
             nn.Tanh(),
-            nn.Linear(64, action_size),
+            nn.Linear(hidden_size, action_size),
             pfrl.policies.GaussianHeadWithStateIndependentCovariance(
                 action_size=action_size,
                 var_type="diagonal",
@@ -182,7 +194,6 @@ def main():
             ),
         )
     else:
-        hidden_size = 32
         policy = torch.nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.Tanh(),
@@ -195,11 +206,11 @@ def main():
         )
 
     vf = torch.nn.Sequential(
-        nn.Linear(obs_size, 64),
+        nn.Linear(obs_size, hidden_size),
         nn.Tanh(),
-        nn.Linear(64, 64),
+        nn.Linear(hidden_size, hidden_size),
         nn.Tanh(),
-        nn.Linear(64, 1),
+        nn.Linear(hidden_size, 1),
     )
 
     # While the original paper initialized weights by normal distribution,
@@ -218,7 +229,7 @@ def main():
     # Combine a policy and a value function into a single model
     model = pfrl.nn.Branched(policy, vf)
 
-    opt = torch.optim.Adam(model.parameters(), lr=3e-5, eps=1e-5)
+    opt = torch.optim.Adam(model.parameters(), lr=args.lr, eps=args.eps)
 
     agent = PPO(
         model,
@@ -231,8 +242,8 @@ def main():
         clip_eps_vf=None,
         entropy_coef=0,
         standardize_advantages=True,
-        gamma=0.995,
-        lambd=0.97,
+        gamma=args.gamma,
+        lambd=args.lambd,
     )
 
     if args.load or args.load_pretrained:
@@ -269,6 +280,7 @@ def main():
                 eval_stats["stdev"],
             )
         )
+        env.close()
     else:
         # experiments.train_agent_batch_with_evaluation(
         #     agent=agent,

@@ -145,6 +145,9 @@ def train_agent_batch(
     else:
         # Save the final model
         save_agent(agent, t, outdir, logger, suffix="_finish")
+        env.close()
+        if evaluator:
+            evaluator.env.close()
 
 
 def train_agent_batch_with_evaluation(

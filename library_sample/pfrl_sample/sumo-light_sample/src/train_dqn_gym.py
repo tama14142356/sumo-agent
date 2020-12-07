@@ -65,7 +65,8 @@ def main():
     parser.add_argument("--n-hidden-channels", type=int, default=100)
     parser.add_argument("--n-hidden-layers", type=int, default=2)
     parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--minibatch-size", type=int, default=None)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--minibatch-size", type=int, default=32)
     parser.add_argument("--render-train", action="store_true")
     parser.add_argument("--render-eval", action="store_true")
     parser.add_argument("--monitor", action="store_true")
@@ -173,7 +174,7 @@ def main():
         # Turn off explorer
         explorer = explorers.Greedy()
 
-    opt = optim.Adam(q_func.parameters(), lr=1e-4)
+    opt = optim.Adam(q_func.parameters(), lr=args.lr)
 
     rbuf_capacity = 5 * 10 ** 5
     if args.minibatch_size is None:
@@ -221,6 +222,8 @@ def main():
             n_episodes=args.eval_n_runs,
             max_episode_len=timestep_limit,
         )
+        env.close()
+        eval_env.close()
         print(
             "n_runs: {} mean: {} median: {} stdev {}".format(
                 args.eval_n_runs,
@@ -244,6 +247,8 @@ def main():
             train_max_episode_len=timestep_limit,
             use_tensorboard=True,
         )
+        env.close()
+        eval_env.close()
     else:
         # using impala mode when given num of envs
 
