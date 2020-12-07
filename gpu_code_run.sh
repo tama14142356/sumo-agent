@@ -6,4 +6,4 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-CUDA_VISIBLE_DEVICES=$1 ${@:2}
+CUDA_VISIBLE_DEVICES=$1 "${@:2}"
