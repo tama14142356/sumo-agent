@@ -120,7 +120,9 @@ def main():
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
-            env = pfrl.wrappers.Monitor(env, args.outdir)
+            env = pfrl.wrappers.Monitor(
+                env, args.outdir, video_callable=(lambda e: e % 1 == 0)
+            )
         if isinstance(env.action_space, spaces.Box):
             utils.env_modifiers.make_action_filtered(env, clip_action_filter)
         if not test:

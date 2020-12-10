@@ -135,7 +135,9 @@ def main():
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
-            env = pfrl.wrappers.Monitor(env, args.outdir)
+            env = pfrl.wrappers.Monitor(
+                env, args.outdir, video_callable=(lambda e: e % 1 == 0)
+            )
         if args.render:
             env = pfrl.wrappers.Render(env)
         return env
@@ -292,7 +294,7 @@ def main():
             eval_interval=args.eval_interval,
             log_interval=args.log_interval,
             max_episode_len=timestep_limit,
-            save_best_so_far_agent=False,
+            save_best_so_far_agent=True,
         )
 
 
