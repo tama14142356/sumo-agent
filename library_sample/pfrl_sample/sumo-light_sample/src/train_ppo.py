@@ -108,10 +108,15 @@ def main():
     parser.add_argument(
         "--hidden-size", type=int, default=32, help="number of hidden neural nerwork"
     )
-    parser.add_argument("--lr", type=float, default=3e-5, help="learning rate")
-    parser.add_argument("--eps", type=float, default=1e-5)
     parser.add_argument("--gamma", type=float, default=0.995)
     parser.add_argument("--lambd", type=float, default=0.97)
+    # optimizer hipery param
+    parser.add_argument("--lr", type=float, default=3e-5, help="learning rate")
+    parser.add_argument("--eps", type=float, default=1e-8)
+    parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
+    parser.add_argument("--weight-decay", type=float, default=0)
+    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
+    parser.add_argument("--amsgrad", type=bool, default=False)
     args = parser.parse_args()
 
     # Set a random seed used in PFRL
@@ -229,7 +234,14 @@ def main():
     # Combine a policy and a value function into a single model
     model = pfrl.nn.Branched(policy, vf)
 
-    opt = torch.optim.Adam(model.parameters(), lr=args.lr, eps=args.eps)
+    opt = torch.optim.Adam(
+        model.parameters(),
+        lr=args.lr,
+        betas=args.betas,
+        eps=args.eps,
+        weight_decay=args.weight_decay,
+        amsgrad=args.amsgrad,
+    )
 
     agent = PPO(
         model,

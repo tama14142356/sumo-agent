@@ -65,7 +65,6 @@ def main():
     parser.add_argument("--n-hidden-channels", type=int, default=100)
     parser.add_argument("--n-hidden-layers", type=int, default=2)
     parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--minibatch-size", type=int, default=32)
     parser.add_argument("--render-train", action="store_true")
     parser.add_argument("--render-eval", action="store_true")
@@ -85,6 +84,17 @@ def main():
             " --actor-learner enabled)"
         ),
     )  # NOQA
+    parser.add_argument(
+        "--video-freq", type=int, default=1, help="record video freaquency"
+    )
+    parser.add_argument("--sigma", type=float, default=0.2)
+    # optimizer hipery param
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--eps", type=float, default=1e-8)
+    parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
+    parser.add_argument("--weight-decay", type=float, default=0)
+    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
+    parser.add_argument("--amsgrad", type=bool, default=False)
     args = parser.parse_args()
 
     # Set a random seed used in PFRL
@@ -122,7 +132,7 @@ def main():
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
             env = pfrl.wrappers.Monitor(
-                env, args.outdir, video_callable=(lambda e: e % 1 == 0)
+                env, args.outdir, video_callable=(lambda e: e % args.video_freq == 0)
             )
         if isinstance(env.action_space, spaces.Box):
             utils.env_modifiers.make_action_filtered(env, clip_action_filter)
@@ -151,7 +161,7 @@ def main():
             action_space=action_space,
         )
         # Use the Ornstein-Uhlenbeck process for exploration
-        ou_sigma = (action_space.high - action_space.low) * 0.2
+        ou_sigma = (action_space.high - action_space.low) * args.sigma
         explorer = explorers.AdditiveOU(sigma=ou_sigma)
     else:
         n_actions = action_space.n
@@ -174,9 +184,16 @@ def main():
         # Turn off explorer
         explorer = explorers.Greedy()
 
-    opt = optim.Adam(q_func.parameters(), lr=args.lr)
+    opt = optim.Adam(
+        q_func.parameters(),
+        lr=args.lr,
+        betas=args.betas,
+        eps=args.eps,
+        weight_decay=args.weight_decay,
+        amsgrad=args.amsgrad,
+    )
 
-    rbuf_capacity = 5 * 10 ** 5
+    rbuf_capacity = args.rbuf_capacity
     if args.minibatch_size is None:
         args.minibatch_size = 32
     if args.prioritized_replay:
