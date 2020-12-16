@@ -151,7 +151,7 @@ def main():
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
             env = pfrl.wrappers.Monitor(
-                env, args.outdir, (lambda e: e % args.video_freq)
+                env, args.outdir, video_callable=(lambda e: e % args.video_freq == 0)
             )
         if args.render:
             env = pfrl.wrappers.Render(env)
