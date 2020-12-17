@@ -23,13 +23,14 @@ import torch.nn.functional as F
 import torch.optim as optim
 from gym import spaces
 import copy
-import eval_sumo
 
 import pfrl
 from pfrl import experiments, explorers
 from pfrl import nn as pnn
 from pfrl import q_functions, replay_buffers, utils
 from pfrl.agents.dqn import DQN
+
+from experiments_sumo import eval_sumo
 
 FUNCTION_MAP = {"relu": F.relu}
 

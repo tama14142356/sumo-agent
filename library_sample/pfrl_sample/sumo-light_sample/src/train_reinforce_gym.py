@@ -18,11 +18,12 @@ import gym_sumo
 import gym.spaces
 import torch
 from torch import nn
-import eval_sumo
 
 import pfrl
 from pfrl import experiments, utils
 from pfrl.policies import GaussianHeadWithFixedCovariance, SoftmaxCategoricalHead
+
+from experiments_sumo import eval_sumo
 
 
 def main():

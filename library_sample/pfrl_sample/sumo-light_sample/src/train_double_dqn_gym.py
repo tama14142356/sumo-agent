@@ -1,14 +1,14 @@
-"""An example of training DQN against OpenAI Gym Envs.
+"""An example of training Double DQN against OpenAI Gym Envs.
 
-This script is an example of training a DQN agent against OpenAI Gym envs.
+This script is an example of training a Double DQN agent against OpenAI Gym envs.
 Both discrete and continuous action spaces are supported. For continuous action
 spaces, A NAF (Normalized Advantage Function) is used to approximate Q-values.
 
 To solve CartPole-v0, run:
-    python train_dqn_gym.py --env CartPole-v0
+    python train_double_dqn_gym.py --env CartPole-v0
 
 To solve Pendulum-v0, run:
-    python train_dqn_gym.py --env Pendulum-v0
+    python train_double_dqn_gym.py --env Pendulum-v0
 """
 
 import argparse
@@ -23,13 +23,14 @@ import torch.nn.functional as F
 import torch.optim as optim
 from gym import spaces
 import copy
-import eval_sumo
 
 import pfrl
 from pfrl import experiments, explorers
 from pfrl import nn as pnn
 from pfrl import q_functions, replay_buffers, utils
 from pfrl.agents.double_dqn import DoubleDQN
+
+from experiments_sumo import eval_sumo
 
 FUNCTION_MAP = {"relu": F.relu}
 

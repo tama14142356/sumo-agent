@@ -19,8 +19,8 @@ import pfrl
 from pfrl import experiments, utils
 from pfrl.agents import PPO
 
-import train_agent_batch_sumo
-import eval_sumo
+import experiments_sumo
+from experiments_sumo import eval_sumo
 
 
 def main():
@@ -364,7 +364,7 @@ def main():
         #     successful_score=args.successful_score,
         #     save_best_so_far_agent=args.save_best_so_far_agent,
         # )
-        train_agent_batch_sumo.train_agent_batch_with_evaluation(
+        experiments_sumo.train_agent_batch_with_evaluation(
             agent=agent,
             env=make_batch_env(False),
             steps=args.steps,

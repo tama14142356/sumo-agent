@@ -15,10 +15,11 @@ import gym
 import gym_sumo
 import torch
 import copy
-import eval_sumo
 
 import pfrl
 from pfrl import experiments, explorers, q_functions, replay_buffers, utils
+
+from experiments_sumo import eval_sumo
 
 
 def main():
