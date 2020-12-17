@@ -10,8 +10,8 @@ dir_name=$(dirname $0)
 cd $dir_name/../src
 
 # mujoco/reproduction/ppo (specify non-mujoco env to test without mujoco)
-python train_ppo.py --outdir $outdir/train --gpu -1
-# model=$(find $outdir/train -name "best")
-# python train_ppo.py --demo --load $model --eval-n-runs 1 --monitor --outdir $outdir/demo/best --gpu -1
+python train_ppo.py --steps 10000 --outdir $outdir/train --gpu -1
+model=$(find $outdir/train -name "best")
+python train_ppo.py --demo --load $model --eval-n-runs 1 --monitor --outdir $outdir/demo/best --gpu -1
 model=$(find $outdir/train -name "*_finish")
 python train_ppo.py --demo --load $model --eval-n-runs 1 --monitor --outdir $outdir/demo/finish --gpu -1
