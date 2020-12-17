@@ -19,6 +19,7 @@ import gym
 import gym_sumo
 import numpy as np
 import torch
+import torch.nn.functional as F
 import torch.optim as optim
 from gym import spaces
 import copy
@@ -30,11 +31,14 @@ from pfrl import nn as pnn
 from pfrl import q_functions, replay_buffers, utils
 from pfrl.agents.dqn import DQN
 
+FUNCTION_MAP = {"relu": F.relu}
+
 
 def main():
     import logging
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
         "--outdir",
         type=str,
@@ -45,36 +49,92 @@ def main():
         ),
     )
     parser.add_argument("--env", type=str, default="sumo-light-v0")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
-    parser.add_argument("--gpu", type=int, default=device)
-    parser.add_argument("--final-exploration-steps", type=int, default=10 ** 4)
-    parser.add_argument("--start-epsilon", type=float, default=1.0)
-    parser.add_argument("--end-epsilon", type=float, default=0.1)
-    parser.add_argument("--noisy-net-sigma", type=float, default=None)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--steps", type=int, default=10 ** 6)
-    parser.add_argument("--prioritized-replay", action="store_true")
-    parser.add_argument("--replay-start-size", type=int, default=1000)
-    parser.add_argument("--target-update-interval", type=int, default=10 ** 2)
-    parser.add_argument("--target-update-method", type=str, default="hard")
-    parser.add_argument("--soft-update-tau", type=float, default=1e-2)
-    parser.add_argument("--update-interval", type=int, default=1)
-    parser.add_argument("--eval-n-runs", type=int, default=100)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
-    parser.add_argument("--n-hidden-channels", type=int, default=100)
-    parser.add_argument("--n-hidden-layers", type=int, default=2)
-    parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--minibatch-size", type=int, default=32)
     parser.add_argument("--render-train", action="store_true")
     parser.add_argument("--render-eval", action="store_true")
-    parser.add_argument("--monitor", action="store_true")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
+
+    # monitor hiper param
+    parser.add_argument(
+        "--video-freq", type=int, default=1, help="record video freaquency"
+    )
+    parser.add_argument("--monitor", action="store_true", default=False)
+
+    # scale reward env hyper param
     parser.add_argument("--reward-scale-factor", type=float, default=1e-3)
+
+    # q func hyper param
+    parser.add_argument("--n-hidden-channels", type=int, default=100)
+    parser.add_argument("--n-hidden-layers", type=int, default=2)
+    # action space is box
+    parser.add_argument("--scale-mu", action="store_false", default=True)
+    # action space is discrete
+    parser.add_argument("--last-wscale", type=float, default=1.0)
+    parser.add_argument(
+        "--nonlinearity", type=str, choices=list(FUNCTION_MAP.keys()), default="relu"
+    )
+
+    # optimizer hiper param
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--eps", type=float, default=1e-8)
+    parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
+    parser.add_argument("--weight-decay", type=float, default=0)
+    parser.add_argument("--amsgrad", action="store_true", default=False)
+
+    # replay buffers hyper param
+    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
+    # replay buffers hyper param if prioritized-replay is True
+    parser.add_argument("--prioritized-replay", action="store_true")
+    parser.add_argument("--rbuf-alpha", type=float, default=0.6)
+    parser.add_argument("--rbuf-beta0", type=float, default=0.4)
+    parser.add_argument("--rbuf-eps", type=float, default=0.01)
+    parser.add_argument("--rbuf-normalize-by-max", action="store_false", default=True)
+    parser.add_argument("--rbuf-error-min", type=int, default=0)
+    parser.add_argument("--rbuf-error-max", type=int, default=1)
+    parser.add_argument("--rbuf-num-steps", type=int, default=1)
+
+    # explorer(select action func) hyper param
+    parser.add_argument("--start-epsilon", type=float, default=1.0)
+    parser.add_argument("--end-epsilon", type=float, default=0.1)
+    parser.add_argument("--final-exploration-steps", type=int, default=10 ** 4)
+    parser.add_argument("--noisy-net-sigma", type=float, default=None)
+    parser.add_argument("--sigma", type=float, default=0.2)
+
+    # DoubleDqn hyper param (except optimizer, replar buffer, explorer, q func)
+    parser.add_argument("--gamma", type=float, default=0.99)
+    parser.add_argument("--gpu", type=int, default=device)
+    parser.add_argument("--replay-start-size", type=int, default=1000)
+    parser.add_argument("--minibatch-size", type=int, default=32)
+    parser.add_argument("--update-interval", type=int, default=1)
+    parser.add_argument("--target-update-interval", type=int, default=10 ** 2)
+    parser.add_argument("--clip-delta", action="store_false", default=True)
+    parser.add_argument("--target-update-method", type=str, default="hard")
+    parser.add_argument("--soft-update-tau", type=float, default=1e-2)
+    parser.add_argument("--n-times-update", type=int, default=1)
+    parser.add_argument("--batch-accumulator", type=str, default="mean")
+    parser.add_argument("--episodic-update-len", type=int, default=None)
+    parser.add_argument("--recurrent", action="store_true", default=False)
+    parser.add_argument("--max-grad-norm", type=float, default=None)
+
+    # train or evaluate hyper param
+    parser.add_argument("--steps", type=int, default=10 ** 6)
+    parser.add_argument("--eval-n-steps", type=int, default=None)
+    parser.add_argument("--eval-n-runs", type=int, default=100)
+    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
+    parser.add_argument("--checkpoint-freq", type=int, default=None)
+    parser.add_argument("--step-offset", type=int, default=0)
+    parser.add_argument("--eval-max-episode-len", type=int, default=None)
+    parser.add_argument("--successful-score", type=float, default=None)
+    parser.add_argument("--save-best-so-far-agent", action="store_false", default=True)
+    parser.add_argument("--use-tensorboard", action="store_false", default=True)
+    # actor learner
     parser.add_argument(
         "--actor-learner",
         action="store_true",
         help="Enable asynchronous sampling with asynchronous actor(s)",
     )  # NOQA
+    parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument(
         "--num-envs",
         type=int,
@@ -84,17 +144,8 @@ def main():
             " --actor-learner enabled)"
         ),
     )  # NOQA
-    parser.add_argument(
-        "--video-freq", type=int, default=1, help="record video freaquency"
-    )
-    parser.add_argument("--sigma", type=float, default=0.2)
-    # optimizer hipery param
-    parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--eps", type=float, default=1e-8)
-    parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
-    parser.add_argument("--weight-decay", type=float, default=0)
-    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
-    parser.add_argument("--amsgrad", type=bool, default=False)
+    parser.add_argument("--eval-success-threshold", type=float, default=0.0)
+
     args = parser.parse_args()
 
     # Set a random seed used in PFRL
@@ -159,6 +210,7 @@ def main():
             n_hidden_channels=args.n_hidden_channels,
             n_hidden_layers=args.n_hidden_layers,
             action_space=action_space,
+            scale_mu=args.scale_mu,
         )
         # Use the Ornstein-Uhlenbeck process for exploration
         ou_sigma = (action_space.high - action_space.low) * args.sigma
@@ -170,6 +222,8 @@ def main():
             n_actions,
             n_hidden_channels=args.n_hidden_channels,
             n_hidden_layers=args.n_hidden_layers,
+            nonlinearity=FUNCTION_MAP[args.nonlinearity],
+            last_wscale=args.last_wscale,
         )
         # Use epsilon-greedy for exploration
         explorer = explorers.LinearDecayEpsilonGreedy(
@@ -199,24 +253,38 @@ def main():
     if args.prioritized_replay:
         betasteps = (args.steps - args.replay_start_size) // args.update_interval
         rbuf = replay_buffers.PrioritizedReplayBuffer(
-            rbuf_capacity, betasteps=betasteps
+            rbuf_capacity,
+            alpha=args.rbuf_alpha,
+            beta0=args.rbuf_beta0,
+            betasteps=betasteps,
+            eps=args.rbuf_eps,
+            normalize_by_max=args.rbuf_normalize_by_max,
+            error_min=args.rbuf_error_min,
+            error_max=args.rbuf_error_max,
+            num_steps=args.rbuf_num_steps,
         )
     else:
-        rbuf = replay_buffers.ReplayBuffer(rbuf_capacity)
+        rbuf = replay_buffers.ReplayBuffer(rbuf_capacity, num_steps=args.rbuf_num_steps)
 
     agent = DQN(
         q_func,
         opt,
         rbuf,
+        args.gamma,
+        explorer,
         gpu=args.gpu,
-        gamma=args.gamma,
-        explorer=explorer,
         replay_start_size=args.replay_start_size,
-        target_update_interval=args.target_update_interval,
-        update_interval=args.update_interval,
         minibatch_size=args.minibatch_size,
+        update_interval=args.update_interval,
+        target_update_interval=args.target_update_interval,
+        clip_delta=args.clip_delta,
         target_update_method=args.target_update_method,
         soft_update_tau=args.soft_update_tau,
+        n_times_update=args.n_times_update,
+        batch_accumulator=args.batch_accumulator,
+        episodic_update_len=args.episodic_update_len,
+        recurrent=args.recurrent,
+        max_grad_norm=args.max_grad_norm,
     )
 
     if args.load:
@@ -228,14 +296,14 @@ def main():
         # eval_stats = experiments.eval_performance(
         #     env=eval_env,
         #     agent=agent,
-        #     n_steps=None,
+        #     n_steps=args.eval_n_steps,
         #     n_episodes=args.eval_n_runs,
         #     max_episode_len=timestep_limit,
         # )
         eval_stats = eval_sumo.eval_performance(
             env=eval_env,
             agent=agent,
-            n_steps=None,
+            n_steps=args.eval_n_steps,
             n_episodes=args.eval_n_runs,
             max_episode_len=timestep_limit,
         )
@@ -251,18 +319,23 @@ def main():
         )
 
     elif not args.actor_learner:
-
         experiments.train_agent_with_evaluation(
             agent=agent,
             env=env,
             steps=args.steps,
-            eval_n_steps=None,
+            eval_n_steps=args.eval_n_steps,
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             outdir=args.outdir,
-            eval_env=eval_env,
+            checkpoint_freq=args.checkpoint_freq,
             train_max_episode_len=timestep_limit,
-            use_tensorboard=True,
+            step_offset=args.step_offset,
+            eval_max_episode_len=args.eval_max_episode_len,
+            eval_env=eval_env,
+            successful_score=args.successful_score,
+            step_hooks=(),
+            save_best_so_far_agent=args.save_best_so_far_agent,
+            use_tensorboard=args.use_tensorboard,
         )
         env.close()
         eval_env.close()
@@ -287,17 +360,23 @@ def main():
         learner.start()
 
         experiments.train_agent_async(
-            processes=args.num_envs,
-            make_agent=make_actor,
-            make_env=make_env,
+            args.outdir,
+            args.num_envs,
+            make_env,
+            profile=args.profile,
             steps=args.steps,
-            eval_n_steps=None,
-            eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
-            outdir=args.outdir,
+            eval_n_steps=args.eval_n_steps,
+            eval_n_episodes=args.eval_n_runs,
+            eval_success_threshold=args.eval_success_threshold,
+            max_episode_len=args.eval_max_episode_len,
+            step_offset=args.step_offset,
+            successful_score=args.successful_score,
+            make_agent=make_actor,
+            save_best_so_far_agent=args.save_best_so_far_agent,
+            use_tensorboard=args.use_tensorboard,
             stop_event=learner.stop_event,
             exception_event=exception_event,
-            use_tensorboard=True,
         )
 
         poller.stop()

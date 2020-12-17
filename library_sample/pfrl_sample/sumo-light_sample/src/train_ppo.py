@@ -27,19 +27,13 @@ def main():
     import logging
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--gpu", type=int, default=device, help="GPU to use, set to -1 if no GPU."
-    )
+
     parser.add_argument(
         "--env",
         type=str,
         default="sumo-light-v0",
         help="OpenAI Gym MuJoCo env to perform algorithm on.",
     )
-    parser.add_argument(
-        "--num-envs", type=int, default=1, help="Number of envs run in parallel."
-    )
-    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument(
         "--outdir",
         type=str,
@@ -50,11 +44,91 @@ def main():
         ),
     )
     parser.add_argument(
+        "--render", action="store_true", help="Render env states in a GUI window."
+    )
+    parser.add_argument(
+        "--demo", action="store_true", help="Just run evaluation, not training."
+    )
+    parser.add_argument("--load-pretrained", action="store_true", default=False)
+    parser.add_argument(
+        "--load", type=str, default="", help="Directory to load agent from."
+    )
+    # monitor hyper param
+    parser.add_argument(
+        "--monitor", action="store_true", help="Wrap env with gym.wrappers.Monitor."
+    )
+    parser.add_argument(
+        "--video-freq", type=int, default=1, help="record video freaquency"
+    )
+    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
+
+    parser.add_argument(
+        "--num-envs", type=int, default=1, help="Number of envs run in parallel."
+    )
+    parser.add_argument(
+        "--log-level", type=int, default=logging.INFO, help="Level of the root logger."
+    )
+
+    # nn hyper param
+    parser.add_argument(
+        "--hidden-size", type=int, default=32, help="number of hidden neural nerwork"
+    )
+
+    # optimizer hipery param
+    parser.add_argument("--lr", type=float, default=3e-5, help="learning rate")
+    parser.add_argument("--eps", type=float, default=1e-8)
+    parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
+    parser.add_argument("--weight-decay", type=float, default=0)
+    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
+    parser.add_argument("--amsgrad", action="store_true", default=False)
+
+    # observation normalize hyper param
+    parser.add_argument("--obs-normalize-batch-axis", type=int, default=0)
+    parser.add_argument("--obs-normalize-eps", type=float, default=1e-2)
+    parser.add_argument("--obs-normalize-until", type=int, default=None)
+    parser.add_argument("--obs-normalize-clip-threshold", type=int, default=5)
+
+    # PPO hyper param (except model, optimizer, obs_normalizer)
+    parser.add_argument(
+        "--gpu", type=int, default=device, help="GPU to use, set to -1 if no GPU."
+    )
+    parser.add_argument("--gamma", type=float, default=0.995)
+    parser.add_argument("--lambd", type=float, default=0.97)
+    parser.add_argument("--value-func-coef", type=float, default=1.0)
+    parser.add_argument("--entropy-coef", type=float, default=0.0)
+    parser.add_argument(
+        "--update-interval",
+        type=int,
+        default=2048,
+        help="Interval in timesteps between model updates.",
+    )
+    parser.add_argument("--batch-size", type=int, default=64, help="Minibatch size")
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=10,
+        help="Number of epochs to update model for per PPO iteration.",
+    )
+    parser.add_argument("--clip-eps", type=float, default=0.2)
+    parser.add_argument("--clip-eps-vf", type=float, default=None)
+    parser.add_argument("--standardize-advantages", action="store_false", default=True)
+    parser.add_argument("--recurrent", action="store_true", default=False)
+    parser.add_argument("--max-recurrent-sequence-len", type=int, default=None)
+    parser.add_argument("--act-deterministically", action="store_true", default=False)
+    parser.add_argument("--max-grad-norm", type=float, default=None)
+    parser.add_argument("--value-stats-window", type=int, default=1000)
+    parser.add_argument("--entropy-stats-window", type=int, default=1000)
+    parser.add_argument("--value-loss-stats-window", type=int, default=100)
+    parser.add_argument("--policy-loss-stats-window", type=int, default=100)
+
+    # train or eval hyper param
+    parser.add_argument(
         "--steps",
         type=int,
         default=10 ** 6,
         help="Total number of timesteps to train the agent.",
     )
+    parser.add_argument("--eval-n-steps", type=int, default=None)
     parser.add_argument(
         "--eval-interval",
         type=int,
@@ -68,55 +142,19 @@ def main():
         help="Number of episodes run for each evaluation.",
     )
     parser.add_argument(
-        "--render", action="store_true", help="Render env states in a GUI window."
-    )
-    parser.add_argument(
-        "--demo", action="store_true", help="Just run evaluation, not training."
-    )
-    parser.add_argument("--load-pretrained", action="store_true", default=False)
-    parser.add_argument(
-        "--load", type=str, default="", help="Directory to load agent from."
-    )
-    parser.add_argument(
-        "--log-level", type=int, default=logging.INFO, help="Level of the root logger."
-    )
-    parser.add_argument(
-        "--monitor", action="store_true", help="Wrap env with gym.wrappers.Monitor."
-    )
-    parser.add_argument(
         "--log-interval",
         type=int,
         default=1000,
         help="Interval in timesteps between outputting log messages during training",
     )
-    parser.add_argument(
-        "--update-interval",
-        type=int,
-        default=2048,
-        help="Interval in timesteps between model updates.",
-    )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=10,
-        help="Number of epochs to update model for per PPO iteration.",
-    )
-    parser.add_argument("--batch-size", type=int, default=64, help="Minibatch size")
-    parser.add_argument(
-        "--video-freq", type=int, default=1, help="record video freaquency"
-    )
-    parser.add_argument(
-        "--hidden-size", type=int, default=32, help="number of hidden neural nerwork"
-    )
-    parser.add_argument("--gamma", type=float, default=0.995)
-    parser.add_argument("--lambd", type=float, default=0.97)
-    # optimizer hipery param
-    parser.add_argument("--lr", type=float, default=3e-5, help="learning rate")
-    parser.add_argument("--eps", type=float, default=1e-8)
-    parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
-    parser.add_argument("--weight-decay", type=float, default=0)
-    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
-    parser.add_argument("--amsgrad", type=bool, default=False)
+    parser.add_argument("--checkpoint-freq", type=int, default=None)
+    parser.add_argument("--step-offset", type=int, default=0)
+    parser.add_argument("--eval-max-episode-len", type=int, default=None)
+    parser.add_argument("--return-window-size", type=int, default=100)
+    parser.add_argument("--successful-score", type=float, default=None)
+    parser.add_argument("--save-best-so-far-agent", action="store_false", default=True)
+    parser.add_argument("--use-tensorboard", action="store_false", default=True)
+
     args = parser.parse_args()
 
     # Set a random seed used in PFRL
@@ -178,7 +216,11 @@ def main():
 
     # Normalize observations based on their empirical mean and variance
     obs_normalizer = pfrl.nn.EmpiricalNormalization(
-        obs_space.low.size, clip_threshold=5
+        obs_space.low.size,
+        batch_axis=args.obs_normalize_batch_axis,
+        eps=args.obs_normalize_eps,
+        until=args.obs_normalize_until,
+        clip_threshold=args.obs_normalize_clip_threshold,
     )
 
     obs_size = obs_space.low.size
@@ -248,14 +290,24 @@ def main():
         opt,
         obs_normalizer=obs_normalizer,
         gpu=args.gpu,
+        gamma=args.gamma,
+        lambd=args.lambd,
+        value_func_coef=args.value_func_coef,
+        entropy_coef=args.entropy_coef,
         update_interval=args.update_interval,
         minibatch_size=args.batch_size,
         epochs=args.epochs,
-        clip_eps_vf=None,
-        entropy_coef=0,
-        standardize_advantages=True,
-        gamma=args.gamma,
-        lambd=args.lambd,
+        clip_eps=args.clip_eps,
+        clip_eps_vf=args.clip_eps_vf,
+        standardize_advantages=args.standardize_advantages,
+        recurrent=args.recurrent,
+        max_recurrent_sequence_len=args.max_recurrent_sequence_len,
+        act_deterministically=args.act_deterministically,
+        max_grad_norm=args.max_grad_norm,
+        value_stats_window=args.value_stats_window,
+        entropy_stats_window=args.entropy_stats_window,
+        value_loss_stats_window=args.value_loss_stats_window,
+        policy_loss_stats_window=args.policy_loss_stats_window,
     )
 
     if args.load or args.load_pretrained:
@@ -273,14 +325,14 @@ def main():
         # eval_stats = experiments.eval_performance(
         #     env=env,
         #     agent=agent,
-        #     n_steps=None,
+        #     n_steps=args.eval_n_steps,
         #     n_episodes=args.eval_n_runs,
         #     max_episode_len=timestep_limit,
         # )
         eval_stats = eval_sumo.eval_performance(
             env=env,
             agent=agent,
-            n_steps=None,
+            n_steps=args.eval_n_steps,
             n_episodes=args.eval_n_runs,
             max_episode_len=timestep_limit,
         )
@@ -297,28 +349,39 @@ def main():
         # experiments.train_agent_batch_with_evaluation(
         #     agent=agent,
         #     env=make_batch_env(False),
-        #     eval_env=make_batch_env(True),
-        #     outdir=args.outdir,
         #     steps=args.steps,
-        #     eval_n_steps=None,
-        #     eval_n_episodes=args.eval_n_runs,
+        #     eval_n_steps=args.eval_n_steps,
         #     eval_interval=args.eval_interval,
-        #     log_interval=args.log_interval,
+        #     outdir=args.outdir,
+        #     eval_n_episodes=args.eval_n_runs,
+        #     checkpoint_freq=args.checkpoint_freq,
         #     max_episode_len=timestep_limit,
-        #     save_best_so_far_agent=False,
+        #     step_offset=args.step_offset,
+        #     eval_max_episode_len=args.eval_max_episode_len,
+        #     return_window_size=args.return_window_size,
+        #     eval_env=make_batch_env(True),
+        #     log_interval=args.log_interval,
+        #     successful_score=args.successful_score,
+        #     save_best_so_far_agent=args.save_best_so_far_agent,
         # )
         train_agent_batch_sumo.train_agent_batch_with_evaluation(
             agent=agent,
             env=make_batch_env(False),
-            eval_env=make_batch_env(True),
-            outdir=args.outdir,
             steps=args.steps,
-            eval_n_steps=None,
-            eval_n_episodes=args.eval_n_runs,
+            eval_n_steps=args.eval_n_steps,
             eval_interval=args.eval_interval,
-            log_interval=args.log_interval,
+            outdir=args.outdir,
+            eval_n_episodes=args.eval_n_runs,
+            checkpoint_freq=args.checkpoint_freq,
             max_episode_len=timestep_limit,
-            save_best_so_far_agent=True,
+            step_offset=args.step_offset,
+            eval_max_episode_len=args.eval_max_episode_len,
+            return_window_size=args.return_window_size,
+            eval_env=make_batch_env(True),
+            log_interval=args.log_interval,
+            successful_score=args.successful_score,
+            save_best_so_far_agent=args.save_best_so_far_agent,
+            use_tensorboard=args.use_tensorboard,
         )
 
 
