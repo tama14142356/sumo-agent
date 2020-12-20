@@ -35,6 +35,12 @@ def main():
         help="OpenAI Gym MuJoCo env to perform algorithm on.",
     )
     parser.add_argument(
+        "--eval-env",
+        type=str,
+        default="sumo-fix-v0",
+        help="OpenAI Gym MuJoCo env to evaluate agent.",
+    )
+    parser.add_argument(
         "--outdir",
         type=str,
         default="results",
@@ -132,13 +138,13 @@ def main():
     parser.add_argument(
         "--eval-interval",
         type=int,
-        default=100000,
+        default=kwargs_learn["road_freq"],
         help="Interval in timesteps between evaluations.",
     )
     parser.add_argument(
         "--eval-n-runs",
         type=int,
-        default=100,
+        default=1,
         help="Number of episodes run for each evaluation.",
     )
     parser.add_argument(
@@ -178,12 +184,13 @@ def main():
         process_seed = int(process_seeds[process_idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         kwargs_tmp = kwargs_eval if test else kwargs_learn
+        env_name = args.eval_env if test else args.env
         kwargs = copy.deepcopy(kwargs_tmp)
         kwargs["seed"] = env_seed
         kwargs["label"] = kwargs_tmp["label"] + str(process_seed)
         if args.monitor:
             kwargs["mode"] = "gui"
-        env = gym.make(args.env, **kwargs)
+        env = gym.make(env_name, **kwargs)
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
@@ -386,7 +393,13 @@ def main():
 
 
 if __name__ == "__main__":
-    kwargs_learn = {"mode": "cui", "carnum": 1, "label": "learn", "step_length": 1}
+    kwargs_learn = {
+        "mode": "cui",
+        "carnum": 1,
+        "label": "learn",
+        "step_length": 1,
+        "road_freq": 1000,
+    }
     kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval", "step_length": 1}
     device = 0 if torch.cuda.is_available() else -1
     main()

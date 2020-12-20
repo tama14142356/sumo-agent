@@ -50,6 +50,7 @@ def main():
         ),
     )
     parser.add_argument("--env", type=str, default="sumo-light-v0")
+    parser.add_argument("--eval-env", type=str, default="sumo-fix-v0")
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--render-train", action="store_true")
@@ -121,8 +122,8 @@ def main():
     # train or evaluate hyper param
     parser.add_argument("--steps", type=int, default=10 ** 6)
     parser.add_argument("--eval-n-steps", type=int, default=None)
-    parser.add_argument("--eval-n-runs", type=int, default=100)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
+    parser.add_argument("--eval-n-runs", type=int, default=1)
+    parser.add_argument("--eval-interval", type=int, default=kwargs_learn["road_freq"])
     parser.add_argument("--checkpoint-freq", type=int, default=None)
     parser.add_argument("--step-offset", type=int, default=0)
     parser.add_argument("--eval-max-episode-len", type=int, default=None)
@@ -174,12 +175,13 @@ def main():
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         utils.set_random_seed(env_seed)
         kwargs_tmp = kwargs_eval if test else kwargs_learn
+        env_name = args.eval_env if test else args.env
         kwargs = copy.deepcopy(kwargs_tmp)
         kwargs["seed"] = env_seed
         kwargs["label"] = kwargs_tmp["label"] + str(process_seed)
         if args.monitor:
             kwargs["mode"] = "gui"
-        env = gym.make(args.env, **kwargs)
+        env = gym.make(env_name, **kwargs)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
@@ -387,7 +389,13 @@ def main():
 
 
 if __name__ == "__main__":
-    kwargs_learn = {"mode": "cui", "carnum": 1, "label": "learn", "step_length": 1}
+    kwargs_learn = {
+        "mode": "cui",
+        "carnum": 1,
+        "label": "learn",
+        "step_length": 1,
+        "road_freq": 1000,
+    }
     kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval", "step_length": 1}
     device = 0 if torch.cuda.is_available() else -1
     main()
