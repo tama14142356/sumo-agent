@@ -9,9 +9,6 @@ from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
 
 
-from IPython import embed
-
-
 def train_agent_batch(
     agent,
     env,
@@ -66,7 +63,8 @@ def train_agent_batch(
         agent.t = step_offset
 
     max_eval_score = None
-    road_nums = [None] * num_envs
+    road_nums = np.array(env.set_or_get_road_num([None] * num_envs), dtype="i")
+    reset_flag = np.zeros(num_envs, dtype=bool)
 
     try:
         while True:
@@ -76,7 +74,6 @@ def train_agent_batch(
             obss, rs, dones, infos = env.step(actions)
             episode_r += rs
             episode_len += 1
-            road_nums = env.set_or_get_road_num(road_nums)
 
             # Compute mask for done and reset
             if max_episode_len is None:
@@ -92,6 +89,7 @@ def train_agent_batch(
             # Make mask. 0 if done/reset, 1 if pass
             end = np.logical_or(resets, dones)
             not_end = np.logical_not(end)
+            reset_flag = np.logical_or(reset_flag, end)
 
             # For episodes that ends, do the following:
             #   1. increment the episode count
@@ -131,14 +129,14 @@ def train_agent_batch(
                     t=t, episodes=np.sum(episode_idx)
                 )
                 if score:
-                    embed()
                     max_score = evaluator.max_score
                     if max_eval_score is None:
                         max_eval_score = max_score
                     if max_eval_score < max_score:
                         max_eval_score = max_score
-                        road_nums = [n if n is None else n + 2 for n in road_nums]
+                        road_nums[reset_flag] += 2
                         env.set_or_get_road_num(road_nums)
+                        reset_flag = np.zeros(num_envs, dtype=bool)
                     if successful_score is not None and max_score >= successful_score:
                         break
 
