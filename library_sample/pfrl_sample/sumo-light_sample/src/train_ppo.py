@@ -139,7 +139,7 @@ def main():
     parser.add_argument(
         "--eval-interval",
         type=int,
-        default=kwargs_learn["road_freq"],
+        default=10000,
         help="Interval in timesteps between evaluations.",
     )
     parser.add_argument(
@@ -394,13 +394,7 @@ def main():
 
 
 if __name__ == "__main__":
-    kwargs_learn = {
-        "mode": "cui",
-        "carnum": 1,
-        "label": "learn",
-        "step_length": 1,
-        "road_freq": 1000,
-    }
-    kwargs_eval = {"mode": "gui", "carnum": 1, "label": "eval", "step_length": 1}
+    kwargs_learn = {"mode": "cui", "carnum": 1, "label": "learn", "step_length": 1}
+    kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval", "step_length": 1}
     device = 0 if torch.cuda.is_available() else -1
     main()
