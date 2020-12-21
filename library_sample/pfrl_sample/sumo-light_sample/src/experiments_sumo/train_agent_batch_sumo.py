@@ -9,6 +9,9 @@ from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
 
 
+from IPython import embed
+
+
 def train_agent_batch(
     agent,
     env,
@@ -62,6 +65,9 @@ def train_agent_batch(
     if hasattr(agent, "t"):
         agent.t = step_offset
 
+    max_eval_score = None
+    road_nums = [None] * num_envs
+
     try:
         while True:
             # a_t
@@ -70,6 +76,7 @@ def train_agent_batch(
             obss, rs, dones, infos = env.step(actions)
             episode_r += rs
             episode_len += 1
+            road_nums = env.set_or_get_road_num(road_nums)
 
             # Compute mask for done and reset
             if max_episode_len is None:
@@ -120,11 +127,19 @@ def train_agent_batch(
                 )
                 logger.info("statistics: {}".format(agent.get_statistics()))
             if evaluator:
-                if evaluator.evaluate_if_necessary(t=t, episodes=np.sum(episode_idx)):
-                    if (
-                        successful_score is not None
-                        and evaluator.max_score >= successful_score
-                    ):
+                score = evaluator.evaluate_if_necessary(
+                    t=t, episodes=np.sum(episode_idx)
+                )
+                if score:
+                    embed()
+                    max_score = evaluator.max_score
+                    if max_eval_score is None:
+                        max_eval_score = max_score
+                    if max_eval_score < max_score:
+                        max_eval_score = max_score
+                        road_nums = [n if n is None else n + 2 for n in road_nums]
+                        env.set_or_get_road_num(road_nums)
+                    if successful_score is not None and max_score >= successful_score:
                         break
 
             if t >= steps:

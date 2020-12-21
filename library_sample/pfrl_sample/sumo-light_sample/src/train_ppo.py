@@ -21,6 +21,7 @@ from pfrl.agents import PPO
 
 import experiments_sumo
 from experiments_sumo import eval_sumo
+import pfrl_envs_sumo
 
 
 def main():
@@ -203,7 +204,7 @@ def main():
         return env
 
     def make_batch_env(test):
-        return pfrl.envs.MultiprocessVectorEnv(
+        return pfrl_envs_sumo.MultiprocessVectorEnv(
             [
                 functools.partial(make_env, idx, test)
                 for idx, env in enumerate(range(args.num_envs))
@@ -400,6 +401,6 @@ if __name__ == "__main__":
         "step_length": 1,
         "road_freq": 1000,
     }
-    kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval", "step_length": 1}
+    kwargs_eval = {"mode": "gui", "carnum": 1, "label": "eval", "step_length": 1}
     device = 0 if torch.cuda.is_available() else -1
     main()
