@@ -123,7 +123,7 @@ def main():
     parser.add_argument("--steps", type=int, default=10 ** 6)
     parser.add_argument("--eval-n-steps", type=int, default=None)
     parser.add_argument("--eval-n-runs", type=int, default=1)
-    parser.add_argument("--eval-interval", type=int, default=kwargs_learn["road_freq"])
+    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
     parser.add_argument("--checkpoint-freq", type=int, default=None)
     parser.add_argument("--step-offset", type=int, default=0)
     parser.add_argument("--eval-max-episode-len", type=int, default=None)

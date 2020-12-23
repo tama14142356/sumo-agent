@@ -21,7 +21,6 @@ from pfrl.agents import PPO
 
 import experiments_sumo
 from experiments_sumo import eval_sumo
-import pfrl_envs_sumo
 
 
 def main():
@@ -204,7 +203,7 @@ def main():
         return env
 
     def make_batch_env(test):
-        return pfrl_envs_sumo.MultiprocessVectorEnv(
+        return pfrl.envs.MultiprocessVectorEnv(
             [
                 functools.partial(make_env, idx, test)
                 for idx, env in enumerate(range(args.num_envs))
