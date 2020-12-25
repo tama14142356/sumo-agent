@@ -144,7 +144,7 @@ def main():
     parser.add_argument(
         "--eval-n-runs",
         type=int,
-        default=1,
+        default=1000,
         help="Number of episodes run for each evaluation.",
     )
     parser.add_argument(
