@@ -393,7 +393,13 @@ def main():
 
 
 if __name__ == "__main__":
-    kwargs_learn = {"mode": "cui", "carnum": 1, "label": "learn", "step_length": 1}
+    kwargs_learn = {
+        "mode": "cui",
+        "carnum": 1,
+        "label": "learn",
+        "road_freq": 1000,
+        "step_length": 1,
+    }
     kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval", "step_length": 1}
     device = 0 if torch.cuda.is_available() else -1
     main()
