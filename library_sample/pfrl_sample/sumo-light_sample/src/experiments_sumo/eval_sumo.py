@@ -1,6 +1,8 @@
+import argparse
 import logging
-import subprocess
 import os
+import pprint
+import subprocess
 import statistics
 
 import numpy as np
@@ -327,6 +329,13 @@ def eval_performance(
 def save_sumo_version(outdir):
     with open(os.path.join(outdir, "sumo-version.txt"), "wb") as f:
         f.write(subprocess.check_output("sumo --version".split()))
+
+
+def save_args_compact(args, outdir):
+    with open(os.path.join(outdir, "args.txt"), "w") as f:
+        if isinstance(args, argparse.Namespace):
+            args = vars(args)
+        pprint.pprint(args, stream=f, compact=True)
 
 
 if __name__ == "__main__":

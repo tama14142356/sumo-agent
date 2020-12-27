@@ -34,12 +34,14 @@ def main():
         default="sumo-light-v0",
         help="OpenAI Gym MuJoCo env to perform algorithm on.",
     )
+    parser.add_argument("--kwargs-learn", type=dict, default=kwargs_learn)
     parser.add_argument(
         "--eval-env",
         type=str,
         default="sumo-fix-v0",
         help="OpenAI Gym MuJoCo env to evaluate agent.",
     )
+    parser.add_argument("--kwargs-eval", type=dict, default=kwargs_eval)
     parser.add_argument(
         "--outdir",
         type=str,
@@ -174,6 +176,7 @@ def main():
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     eval_sumo.save_sumo_version(args.outdir)
+    eval_sumo.save_args_compact(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
 
     log_file_name = os.path.join(args.outdir, "log.log")
@@ -183,7 +186,7 @@ def main():
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[process_idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
-        kwargs_tmp = kwargs_eval if test else kwargs_learn
+        kwargs_tmp = args.kwargs_eval if test else args.kwargs_learn
         env_name = args.eval_env if test else args.env
         kwargs = copy.deepcopy(kwargs_tmp)
         kwargs["seed"] = env_seed
@@ -398,8 +401,18 @@ if __name__ == "__main__":
         "carnum": 1,
         "label": "learn",
         "road_freq": 1000,
+        "road_ratio": 0.2,
         "step_length": 1,
+        "max_length": 100.0,
+        "is_length": True,
+        "is_random_route": False,
     }
-    kwargs_eval = {"mode": "cui", "carnum": 1, "label": "eval", "step_length": 1}
+    kwargs_eval = {
+        "mode": "cui",
+        "carnum": 1,
+        "label": "eval",
+        "step_length": 1,
+        "route_length": [1000.0, 2000.0],
+    }
     device = 0 if torch.cuda.is_available() else -1
     main()
