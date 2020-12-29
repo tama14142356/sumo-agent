@@ -87,7 +87,6 @@ def main():
     parser.add_argument("--eps", type=float, default=1e-8)
     parser.add_argument("--betas", type=tuple, default=(0.9, 0.999))
     parser.add_argument("--weight-decay", type=float, default=0)
-    parser.add_argument("--rbuf-capacity", type=float, default=5 * 10 ** 5)
     parser.add_argument("--amsgrad", action="store_true", default=False)
 
     # observation normalize hyper param
