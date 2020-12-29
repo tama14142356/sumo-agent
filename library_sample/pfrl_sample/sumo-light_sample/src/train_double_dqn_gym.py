@@ -1,14 +1,14 @@
-"""An example of training DQN against OpenAI Gym Envs.
+"""An example of training Double DQN against OpenAI Gym Envs.
 
-This script is an example of training a DQN agent against OpenAI Gym envs.
+This script is an example of training a Double DQN agent against OpenAI Gym envs.
 Both discrete and continuous action spaces are supported. For continuous action
 spaces, A NAF (Normalized Advantage Function) is used to approximate Q-values.
 
 To solve CartPole-v0, run:
-    python train_dqn_gym.py --env CartPole-v0
+    python train_double_dqn_gym.py --env CartPole-v0
 
 To solve Pendulum-v0, run:
-    python train_dqn_gym.py --env Pendulum-v0
+    python train_double_dqn_gym.py --env Pendulum-v0
 """
 
 import argparse
@@ -28,7 +28,7 @@ import pfrl
 from pfrl import experiments, explorers
 from pfrl import nn as pnn
 from pfrl import q_functions, replay_buffers, utils
-from pfrl.agents.dqn import DQN
+from pfrl.agents.double_dqn import DoubleDQN
 
 from experiments_sumo import eval_sumo
 
@@ -105,7 +105,7 @@ def main():
     parser.add_argument("--noisy-net-sigma", type=float, default=None)
     parser.add_argument("--sigma", type=float, default=0.2)
 
-    # Dqn hyper param (except optimizer, replar buffer, explorer, q func)
+    # DoubleDqn hyper param (except optimizer, replar buffer, explorer, q func)
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--gpu", type=int, default=device)
     parser.add_argument("--replay-start-size", type=int, default=1000)
@@ -272,7 +272,7 @@ def main():
     else:
         rbuf = replay_buffers.ReplayBuffer(rbuf_capacity, num_steps=args.rbuf_num_steps)
 
-    agent = DQN(
+    agent = DoubleDQN(
         q_func,
         opt,
         rbuf,
