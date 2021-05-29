@@ -11,7 +11,7 @@ GPU: cuda10.2 (なくてもいい)
 
 ## SUMO・gym環境のインストール方法
 SUMO・gym環境のインストール方法は
-[SUMO・gym環境のインストール方法](https://git.esslab.jp/tomo/gym-sumo/-/blob/master/README.md)を見てください。
+[SUMO・gym環境のインストール方法](https://github.com/tama14142356/gym-sumo/blob/master/README.md)を見てください。
 
 ## 学習環境のインストール
 1. 前セクションでSUMO用のgym環境を整えておく。
